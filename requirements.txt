@@ -1,0 +1,4 @@
+Flask==3.0.0
+segno==1.5.2
+Pillow==10.3.0
+reportlab==4.0.7

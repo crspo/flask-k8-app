@@ -1,0 +1,87 @@
+/* Base page styles */
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f9f9f9;
+  color: #333;
+  margin: 0;
+  padding: 0;
+}
+
+/* Container to center content */
+.container {
+  max-width: 800px;
+  margin: 40px auto;
+  padding: 20px;
+  background: #fff;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  border-radius: 8px;
+}
+
+/* Headings */
+h2, h3 {
+  color: #1e88e5;
+  margin-bottom: 20px;
+}
+
+/* File upload form */
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+input[type="file"] {
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+button {
+  background-color: #1e88e5;
+  color: white;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+button:hover {
+  background-color: #1565c0;
+}
+
+/* Navbar */
+nav {
+  background-color: #1e88e5;
+  padding: 10px 20px;
+  color: white;
+  display: flex;
+  align-items: center;
+}
+
+.navbar-brand {
+  color: white;
+  text-decoration: none;
+  font-size: 20px;
+  font-weight: bold;
+}
+
+/* QR image display */
+img {
+  margin-top: 20px;
+  max-width: 100%;
+  height: auto;
+  border: 2px solid #ddd;
+  border-radius: 4px;
+}
+
+/* Links */
+a {
+  color: #1e88e5;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+a:hover {
+  text-decoration: underline;
+}

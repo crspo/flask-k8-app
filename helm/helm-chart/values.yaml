@@ -1,0 +1,15 @@
+image:
+  repository: chandansyd05/flask-k8-app
+  tag: latest
+containerPort: 5000
+
+ingress:
+  host: chandan.world
+  secretName: qr-tls
+  path: /qr
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 5000
+

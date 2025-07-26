@@ -1,0 +1,32 @@
+<!--
+index.html
+
+Child template that extends layout.html to render upload form UI.
+Includes form fields for file input and submission.
+-->
+
+{% extends "layout.html"%}
+
+{% block content %}
+<div class="jumbotron">
+<p>Welcome to  Serial to QR Converter</p>
+<p>Let's get your serials converted!</p>
+<p>Please upload the file using below link</p>
+<ul>
+  <li>Filename must be valid: </li>
+  <li>Only text serials in the file</li>
+  <li>Must not have any images</li>
+</ul>
+
+
+  <h2>Upload Your Serial File</h2>
+  
+<form method="POST" action="{{ url_for('main.upload_and_export') }}" enctype="multipart/form-data">
+  <input type="file" name="file" required>
+  <button type="submit">Generate QR & Download PDF</button>
+</form>
+
+
+
+</div>
+{% endblock %}
