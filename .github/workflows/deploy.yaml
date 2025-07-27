@@ -30,3 +30,7 @@ jobs:
           --namespace default \
           --set image.repository=${{ secrets.DOCKER_USERNAME }}/flask-k8-app \
           --set image.tag=latest
+          --kubeconfig ~/.kube/config
+
+    - name: Verify Deployment
+      run: kubectl rollout status deployment/flask-app --namespace default --kubeconfig ~/.kube/config
