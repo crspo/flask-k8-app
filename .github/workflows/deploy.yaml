@@ -23,11 +23,6 @@ jobs:
         docker build -t ${{ secrets.DOCKER_USERNAME }}/flask-k8-app:latest .
         docker push ${{ secrets.DOCKER_USERNAME }}/flask-k8-app:latest
 
-    - name: Set up Kubeconfig
-      run: |
-        mkdir -p ~/.kube
-        echo "${{ secrets.KUBECONFIG }}" > ~/.kube/config
-        chmod 600 ~/.kube/config
 
     - name: Deploy with Helm
       run: |
