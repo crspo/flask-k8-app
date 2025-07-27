@@ -26,4 +26,4 @@ flask_project/
 - Docker builds app image
 - GitHub Actions deploys to local Kubernetes via Helm
 - Ingress is used for public access (with optional TLS)
-
+#just updating for trigger
