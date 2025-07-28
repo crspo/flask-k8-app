@@ -52,7 +52,7 @@ def upload_and_export():
             </script>
         ''', content_type='text/html')
 
-    elif request.method == 'POST'
+    elif request.method == 'POST':
         return Response(f'''
             <h3>QR Code Preview:</h3>== success <h3>
             ''', content_type='text/html')
