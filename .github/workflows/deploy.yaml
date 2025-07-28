@@ -23,7 +23,7 @@ jobs:
         docker build -t ${{ secrets.DOCKER_USERNAME }}/flask-k8-app:latest .
         docker push ${{ secrets.DOCKER_USERNAME }}/flask-k8-app:latest
 
- # Set up Helm CLI changed1
+ # Set up Helm CLI changed2
     - name: Install Helm
       uses: azure/setup-helm@v3
       with:

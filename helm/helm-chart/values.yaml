@@ -6,7 +6,7 @@ containerPort: 5000
 ingress:
   host: chandan.world
   secretName: qr-tls
-  path: /qr
+  path: /
 
 service:
   type: ClusterIP
