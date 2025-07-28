@@ -31,7 +31,7 @@ jobs:
 
     # Create kubeconfig file from GitHub Secret
     - name: Write kubeconfig
-      run: echo "${{ secrets.KUBECONFIG }}" > kubeconfig.yml
+      run: echo "${{ secrets.KUBECONFIG }}" | base64 -d > kubeconfig.yml
 
     # Optional: Confirm cluster connectivity
     - name: Validate cluster access
