@@ -8,7 +8,7 @@ bp = Blueprint('main', __name__)
 def index():
     return render_template('index.html')
   
-@bp.route('/upload', methods=['GET','POST'])
+@bp.route('/upload', methods=['POST'])
 def upload_and_export():
     """
     Handles file upload, generates QR preview, and offers PDF download link.
@@ -31,7 +31,7 @@ def upload_and_export():
     # Save PDF to memory for download
     import base64
     pdf_b64 = base64.b64encode(pdf_bytes).decode('utf-8')
-    if request.method == 'GET':
+    if request.method == 'POST':
         return Response(f'''
             <h3>QR Code Preview:</h3>
             <img src="data:image/png;base64,{img_base64}" alt="QR Code"/>
@@ -52,8 +52,7 @@ def upload_and_export():
             </script>
         ''', content_type='text/html')
 
-    elif request.method == 'POST':
+    else:
         return Response(f'''
-            <h3>QR Code Preview:</h3>== success <h3>
+            <h3>QR Code Preview:</h3> <h2> Result out of bound </h2>
             ''', content_type='text/html')
-
