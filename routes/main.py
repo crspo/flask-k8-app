@@ -13,6 +13,15 @@ def upload_and_export():
     """
     Handles file upload, generates QR preview, and offers PDF download link.
     """
+    size_map = {
+    'small': 200,
+    'medium': 300,
+    'large': 500
+    }
+
+    selected_size = request.form.get('size', 'medium')
+    qr_size = size_map.get(selected_size, 300)  # default to Medium if not recognized
+
     file = request.files.get('file')
     if not file or file.filename == '':
         return render_template("error.html", error_msg="No file selected.")
@@ -23,7 +32,7 @@ def upload_and_export():
 
     # Generate QR preview
     from utils.encoder import encode_text_to_qr, generate_qr_pdf
-    img_base64 = encode_text_to_qr(payload)
+    img_base64 = encode_text_to_qr(payload, size=qr_size)
 
     # Generate PDF and store in memory (base64 encoding optional if you want download link)
     pdf_bytes = generate_qr_pdf(payload)

@@ -6,7 +6,7 @@ import segno
 import io
 import base64
 
-def encode_text_to_qr(text: str) -> str:
+def encode_text_to_qr(text: str, scale: int = 5) -> str:
     """
     Encodes text into a QR code using segno and returns a Base64-encoded PNG.
 
@@ -18,10 +18,10 @@ def encode_text_to_qr(text: str) -> str:
     """
     qr = segno.make(text)
     buffer = io.BytesIO()
-    qr.save(buffer, kind='png', scale=5)
+    qr.save(buffer, kind='png', scale=scale)
     return base64.b64encode(buffer.getvalue()).decode('utf-8')
 
-def generate_qr_pdf(payload: str) -> bytes:
+def generate_qr_pdf(payload: str, scale: int = 5) -> bytes:
     """
     Generates a PDF containing a QR code from the given payload.
 
@@ -37,7 +37,7 @@ def generate_qr_pdf(payload: str) -> bytes:
     # Create QR code using segno and save as PNG
     qr = segno.make(payload)
     qr_buffer = io.BytesIO()
-    qr.save(qr_buffer, kind='png', scale=8, dark='black', light='white')
+    qr.save(qr_buffer, kind='png', scale=scale, dark='black', light='white')
     qr_buffer.seek(0)
     qr_img = ImageReader(qr_buffer)
     
