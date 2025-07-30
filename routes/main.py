@@ -35,8 +35,7 @@ def upload_and_export():
     img_base64 = encode_text_to_qr(payload, scale=qr_size)
 
     # Generate PDF and store in memory (base64 encoding optional if you want download link)
-    pdf_bytes = generate_qr_pdf(payload)
-
+    pdf_bytes = generate_qr_pdf(payload, scale=qr_size)
     # Save PDF to memory for download
     import base64
     pdf_b64 = base64.b64encode(pdf_bytes).decode('utf-8')
