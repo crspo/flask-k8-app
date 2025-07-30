@@ -1,0 +1,27 @@
+{% extends "layout.html"%}
+
+<!-- preview.html -->
+<h3>QR Code Preview:</h3>
+<img id="qrImage" src="data:image/png;base64,{{ img_base64 }}" alt="QR Code" />
+<br/>
+<button onclick="printQRCode()">Print QR Code</button>
+<br/>
+<a download="qr-code.pdf" href="data:application/pdf;base64,{{ pdf_b64 }}">Download as PDF</a>
+<br/>
+<a href="/">Upload Another</a>
+
+<!-- <img id="qrImage" src="data:image/png;base64,{{ img_base64 }}" alt="QR Code" /> -->
+
+<script>
+function printQRCode() {
+    const w = window.open('', '', 'height=600,width=800');
+    w.document.write('<html><head><title>Print</title></head><body>');
+    w.document.write(document.getElementById("qrImage").outerHTML);
+    w.document.write('</body></html>');
+    w.document.close();
+    w.focus();
+    w.print();
+    w.close();
+}
+</script>
+

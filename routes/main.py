@@ -49,25 +49,7 @@ def upload_and_export():
     import base64
     pdf_b64 = base64.b64encode(pdf_bytes).decode('utf-8')
     if request.method == 'POST':
-        return Response(f'''
-            <h3>QR Code Preview:</h3>
-            <img src="data:image/png;base64,{img_base64}" alt="QR Code"/>
-            <br/><button onclick="printQRCode()">Print QR Code</button>
-            <br/><a download="qr-code.pdf" href="data:application/pdf;base64,{pdf_b64}">Download as PDF</a>
-            <br/><a href="/">Upload Another</a>
-            <script>
-                function printQRCode() {{
-                const w = window.open('', '', 'height=600,width=800');
-                w.document.write('<html><head><title>Print</title></head><body>');
-                w.document.write(document.querySelector('img').outerHTML);
-                w.document.write('</body></html>');
-                w.document.close();
-                w.focus();
-                w.print();
-                w.close();
-            }}
-            </script>
-        ''', content_type='text/html')
+        return render_template("preview.html", img_base64=img_base64, pdf_b64=pdf_b64)
 
     else:
         return Response(f'''

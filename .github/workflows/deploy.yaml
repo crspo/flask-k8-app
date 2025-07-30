@@ -23,7 +23,7 @@ jobs:
         docker build -t ${{ secrets.DOCKER_USERNAME }}/flask-k8-app:latest .
         docker push ${{ secrets.DOCKER_USERNAME }}/flask-k8-app:latest
 
- # Set up Helm CLI changed2
+ # Set up Helm CLI
     - name: Install Helm
       uses: azure/setup-helm@v3
       with:
@@ -38,6 +38,10 @@ jobs:
       env:
         KUBECONFIG: kubeconfig.yml
       run: kubectl cluster-info
+    
+    # Delete existing deployment
+    - name: Delete existing Deployment
+      run: kubectl delete deployment/flask-app --namespace default --kubeconfig ~/.kube/config
 
     # Deploy with Helm
     - name: Helm Upgrade & Install
