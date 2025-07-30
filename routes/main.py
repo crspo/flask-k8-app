@@ -23,12 +23,21 @@ def upload_and_export():
     qr_size = size_map.get(selected_size, 3)  # default to Medium if not recognized
 
     file = request.files.get('file')
-    if not file or file.filename == '':
-        return render_template("error.html", error_msg="No file selected.")
-
-    lines = file.stream.read().decode('utf-8').splitlines()
+    serials_input = request.form.get('serials', '').strip()
+    lines = []
+    
+    #start input logic
+    if file and file.filename != '':
+        lines = file.stream.read().decode('utf-8').splitlines()
+    elif serials_input:
+        lines = serials_input.splitlines()
+    else:
+        return render_template("error.html", error_msg="No file or input provided.")
+    
     serials = [line.strip() for line in lines if line.strip()]
     payload = '\n'.join(serials)
+    #end input logic
+
 
     # Generate QR preview
     from utils.encoder import encode_text_to_qr, generate_qr_pdf

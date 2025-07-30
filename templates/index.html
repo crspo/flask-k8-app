@@ -16,6 +16,7 @@ Includes form fields for file input and submission.
   <li>Filename must be valid: </li>
   <li>Only text serials in the file</li>
   <li>Must not have any images</li>
+  <li>File extension should only be 'txt'</li>
 </ul>
 
 
@@ -23,6 +24,13 @@ Includes form fields for file input and submission.
   
 <form method="POST" action="{{ url_for('main.upload_and_export') }}" enctype="multipart/form-data">
   <input type="file" name="file" required>
+
+   <!-- Paste Serials -->
+  <label>Or paste serials directly:</label><br/>
+  <textarea name="serials" rows="8" cols="60" placeholder="One serial per line..."></textarea>
+  <br/><br/>
+   
+  <!-- select size of the QR -->
    <br/>
   <label for="size">QR Code Size:</label>
   <select name="size">
