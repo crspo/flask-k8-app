@@ -14,14 +14,35 @@
 
 <script>
 function printQRCode() {
+    const img = document.getElementById('qrImage');
+    const qrSrc = img ? img.src : '';
+
     const w = window.open('', '', 'height=600,width=800');
-    w.document.write('<html><head><title>Print</title></head><body>');
-    w.document.write(document.getElementById("qrImage").outerHTML);
-    w.document.write('</body></html>');
+    w.document.write(`
+        <html>
+        <head><title>Print QR Code</title></head>
+        <body style="text-align:center; margin-top:40px;">
+            <img src="${qrSrc}" id="printQR" style="max-width:100%; height:auto;" />
+        </body>
+        </html>
+    `);
+
+    // Wait for image to load, then trigger print
     w.document.close();
-    w.focus();
-    w.print();
-    w.close();
+    w.onload = () => {
+        const printedImg = w.document.getElementById('printQR');
+        if (printedImg.complete) {
+            w.focus();
+            w.print();
+            w.close();
+        } else {
+            printedImg.onload = () => {
+                w.focus();
+                w.print();
+                w.close();
+            };
+        }
+    };
 }
 </script>
 
