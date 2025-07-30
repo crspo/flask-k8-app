@@ -48,6 +48,7 @@ def upload_and_export():
     # Save PDF to memory for download
     import base64
     pdf_b64 = base64.b64encode(pdf_bytes).decode('utf-8')
+
     if request.method == 'POST':
         return render_template("preview.html", img_base64=img_base64, pdf_b64=pdf_b64)
 
