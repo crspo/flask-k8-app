@@ -50,8 +50,12 @@ jobs:
       run: |
         helm upgrade --install flask-app ./helm/helm-chart \
           --namespace default \
-          --set image.repository=${{ secrets.DOCKER_USERNAME }}/flask-k8-app \
-          --set image.tag=latest
+          --values values.yaml
 
+    #verify Helm Access
+    - name: Verify Helm access
+      run: kubectl auth can-i create deployments --as=system:serviceaccount:default:github-actions-sa
+    
+    #verify deployment
     - name: Verify Deployment
       run: kubectl rollout status deployment/flask-app --namespace default --kubeconfig ~/.kube/config

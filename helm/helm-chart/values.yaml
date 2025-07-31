@@ -13,3 +13,8 @@ service:
   port: 80
   targetPort: 5000
 
+rbac:
+  create: true
+  serviceAccount:
+    name: flask-app-sa
+
