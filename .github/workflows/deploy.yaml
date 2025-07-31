@@ -41,7 +41,7 @@ jobs:
     
     # Delete existing deployment
     - name: Delete existing Deployment
-      run: kubectl delete deployment/flask-app --namespace default --kubeconfig ~/.kube/config
+      run: kubectl delete deployment/flask-app --namespace default --kubeconfig ~/.kube/config --ignore-not-found
 
     # Deploy with Helm
     - name: Helm Upgrade & Install
