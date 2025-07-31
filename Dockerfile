@@ -4,6 +4,16 @@ FROM python:3.12-slim AS builder
 # Set work directory
 WORKDIR /app
 
+# Install CairoSVG system dependencies
+RUN apt-get update && apt-get install -y \
+    libcairo2 \
+    libpango-1.0-0 \
+    libpangocairo-1.0-0 \
+    libgdk-pixbuf2.0-0 \
+    shared-mime-info \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
 # Install pip dependencies into virtual environment
 COPY requirements.txt .
 RUN python -m venv /venv \
@@ -22,11 +32,10 @@ ENV PATH="/venv/bin:$PATH"
 # Copy app code
 COPY . .
 
-# Remove cache and __pycache__ if needed
+# Clean up __pycache__
 RUN rm -rf /venv/lib/python*/site-packages/__pycache__ \
     && find . -type d -name '__pycache__' -exec rm -r {} +
 
 EXPOSE 5000
 CMD ["python", "app.py"]
-
 

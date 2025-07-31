@@ -2,7 +2,8 @@ from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import mm
 from reportlab.lib.utils import ImageReader
-import segno
+from ppf.datamatrix import DataMatrix
+import cairosvg
 import io
 import base64
 
@@ -16,10 +17,12 @@ def encode_text_to_qr(text: str, scale: int = 3) -> str:
     Returns:
         str: Base64-encoded PNG string of the QR code.
     """
-    qr = segno.make_symbol(text, symbol_type='dm')
-    buffer = io.BytesIO()
-    qr.save(buffer, kind='png', scale=scale)
-    return base64.b64encode(buffer.getvalue()).decode('utf-8')
+    svg = DataMatrix(text).svg()
+    png_bytes = cairosvg.svg2png(bytestring=svg.encode('utf-8'))
+    #qr = segno.make_symbol(text, symbol_type='dm')
+    #buffer = io.BytesIO()
+    #qr.save(buffer, kind='png', scale=scale)
+    return base64.b64encode(png_bytes).decode('utf-8')
 
 def generate_qr_pdf(payload: str, scale: int = 3) -> bytes:
     """
@@ -35,11 +38,14 @@ def generate_qr_pdf(payload: str, scale: int = 3) -> bytes:
     c = canvas.Canvas(buffer, pagesize=A4)
 
     # Create QR code using segno and save as PNG
-    qr = segno.make_symbol(payload, symbol_type='dm')
-    qr_buffer = io.BytesIO()
-    qr.save(qr_buffer, kind='png', scale=scale, dark='black', light='white')
-    qr_buffer.seek(0)
-    qr_img = ImageReader(qr_buffer)
+    svg = DataMatrix(payload).svg()
+    png_bytes = cairosvg.svg2png(bytestring=svg.encode('utf-8'))
+    img_stream = io.BytesIO(png_bytes)
+    dm_img = ImageReader(img_stream)
+
+    #qr.save(qr_buffer, kind='png', scale=scale, dark='black', light='white')
+    #qr_buffer.seek(0)
+    #qr_img = ImageReader(qr_buffer)
     
     # Draw QR code onto PDF
     # Base size (e.g. scale 3 = small, scale 5 = medium, scale 8 = large)
@@ -49,12 +55,12 @@ def generate_qr_pdf(payload: str, scale: int = 3) -> bytes:
         5: 85    # mm
     }
 
-    qr_dim_mm = scale_size_map.get(scale, 100)
+    dm_dim_mm = scale_size_map.get(scale, 100)
 
-    c.drawImage(qr_img, x=50*mm, y=120*mm, width=qr_dim_mm*mm, height=qr_dim_mm*mm)
+    c.drawImage(dm_img, x=50*mm, y=120*mm, width=qr_dim_mm*mm, height=qr_dim_mm*mm)
 
     #c.drawImage(qr_img, x=50*mm, y=120*mm, width=100*mm, height=100*mm)
-    c.drawString(50*mm, 110*mm, "QR Code Payload:")
+    c.drawString(50*mm, 110*mm, "DataMatrix Payload:")
     c.drawString(50*mm, 105*mm, payload[:60] + "..." if len(payload) > 60 else payload)
 
     c.showPage()
