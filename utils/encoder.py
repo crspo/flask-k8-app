@@ -57,7 +57,7 @@ def generate_qr_pdf(payload: str, scale: int = 3) -> bytes:
 
     dm_dim_mm = scale_size_map.get(scale, 100)
 
-    c.drawImage(dm_img, x=50*mm, y=120*mm, width=qr_dim_mm*mm, height=qr_dim_mm*mm)
+    c.drawImage(dm_img, x=50*mm, y=120*mm, width=dm_dim_mm*mm, height=dm_dim_mm*mm)
 
     #c.drawImage(qr_img, x=50*mm, y=120*mm, width=100*mm, height=100*mm)
     c.drawString(50*mm, 110*mm, "DataMatrix Payload:")
