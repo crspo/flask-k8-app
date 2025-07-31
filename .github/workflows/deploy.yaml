@@ -2,7 +2,7 @@ name: Build and Deploy Flask App
 
 on:
   push:
-    branches: [ "stage1" ]
+    branches: [ "dm-migration" ]
 
 jobs:
   build-and-deploy:
