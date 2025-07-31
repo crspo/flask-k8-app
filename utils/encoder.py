@@ -7,6 +7,12 @@ import cairosvg
 import io
 import base64
 
+SCALE_SIZE_MAP_MM = {
+        2: 60,   # mm
+        3: 100,  # mm
+        5: 140   # mm
+    }
+
 def encode_text_to_qr(text: str, scale: int = 3) -> str:
     """
     Encodes text into a QR code using segno and returns a Base64-encoded PNG.
@@ -17,9 +23,20 @@ def encode_text_to_qr(text: str, scale: int = 3) -> str:
     Returns:
         str: Base64-encoded PNG string of the QR code.
     """
+
+    dm_dim_mm = SCALE_SIZE_MAP_MM.get(scale, 100)
+    dm_dim_px = int(dm_dim_mm * 3.78)  # Approx. 96 dpi
+
+    # Generate SVG
     svg = DataMatrix(text).svg()
-    png_bytes = cairosvg.svg2png(bytestring=svg.encode('utf-8'))
-    
+
+    # Convert to PNG with dynamic resolution
+    png_bytes = cairosvg.svg2png(
+        bytestring=svg.encode('utf-8'),
+        output_width=dm_dim_px,
+        output_height=dm_dim_px
+    )
+
     return base64.b64encode(png_bytes).decode('utf-8')
 
 def generate_qr_pdf(payload: str, scale: int = 3) -> bytes:
@@ -35,20 +52,22 @@ def generate_qr_pdf(payload: str, scale: int = 3) -> bytes:
     buffer = io.BytesIO()
     c = canvas.Canvas(buffer, pagesize=A4)
 
-    # Create QR code using segno and save as PNG
+    """ 
+        Create DM 
+    """
+
+    dm_dim_mm = SCALE_SIZE_MAP_MM.get(scale, 100)
+    dm_dim_px = int(dm_dim_mm * 3.78)
+    # Generate SVG and convert to PNG with specified resolution
     svg = DataMatrix(payload).svg()
-    png_bytes = cairosvg.svg2png(bytestring=svg.encode('utf-8'))
+    png_bytes = cairosvg.svg2png(
+        bytestring=svg.encode('utf-8'),
+        output_width=dm_dim_px,
+        output_height=dm_dim_px
+    )
     img_stream = io.BytesIO(png_bytes)
     dm_img = ImageReader(img_stream)
 
-
-    scale_size_map = {
-        2: 60,    # mm
-        3: 100,   # mm
-        5: 140    # mm
-    }
-
-    dm_dim_mm = scale_size_map.get(scale, 100)
 
     c.drawImage(dm_img, x=50*mm, y=120*mm, width=dm_dim_mm*mm, height=dm_dim_mm*mm)
 
