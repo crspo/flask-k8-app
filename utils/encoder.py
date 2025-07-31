@@ -60,6 +60,15 @@ def generate_qr_pdf(payload: str, scale: int = 3) -> bytes:
     dm_dim_px = int(dm_dim_mm * 3.78)
     # Generate SVG and convert to PNG with specified resolution
     svg = DataMatrix(payload).svg()
+    
+    # Inject background into SVG manually
+    svg_with_bg = f'''
+    <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+    <rect width="100%" height="100%" fill="white"/>
+    {svg.replace('<?xml version="1.0" encoding="utf-8"?>', '').strip()}
+    </svg>
+    '''
+
     png_bytes = cairosvg.svg2png(
         bytestring=svg.encode('utf-8'),
         output_width=dm_dim_px,
