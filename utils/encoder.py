@@ -3,19 +3,20 @@ from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import mm
 from reportlab.lib.utils import ImageReader
 from ppf.datamatrix import DataMatrix
+from PIL import Image
 import cairosvg
 import io
 import base64
 
 SCALE_SIZE_MAP_MM = {
-        2: 60,   # mm
-        3: 100,  # mm
-        5: 140   # mm
+        2: 40,   # mm
+        3: 60,  # mm
+        5: 120   # mm
     }
 
 def encode_text_to_qr(text: str, scale: int = 3) -> str:
     """
-    Encodes text into a QR code using segno and returns a Base64-encoded PNG.
+    Encodes text into a DM code and returns a Base64-encoded PNG.
 
     Args:
         text (str): The data to encode.
@@ -61,28 +62,27 @@ def generate_qr_pdf(payload: str, scale: int = 3) -> bytes:
     # Generate SVG and convert to PNG with specified resolution
     svg = DataMatrix(payload).svg()
     
-    # Inject background into SVG manually
-    svg_with_bg = f'''
-    <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
-    <rect width="100%" height="100%" fill="white"/>
-    {svg.replace('<?xml version="1.0" encoding="utf-8"?>', '').strip()}
-    </svg>
-    '''
 
     png_bytes = cairosvg.svg2png(
         bytestring=svg.encode('utf-8'),
         output_width=dm_dim_px,
         output_height=dm_dim_px
     )
-    img_stream = io.BytesIO(png_bytes)
-    dm_img = ImageReader(img_stream)
 
+    with Image.open(io.BytesIO(png_bytes)) as img:
+        flattened = Image.new("RGB", img.size, (255, 255, 255))
+        flattened.paste(img, mask=img.getchannel("A"))
+
+        # Convert to ImageReader before drawing
+        img_stream = io.BytesIO()
+        flattened.save(img_stream, format="PNG")
+        img_stream.seek(0)
+        dm_img = ImageReader(img_stream)
+    
 
     c.drawImage(dm_img, x=50*mm, y=120*mm, width=dm_dim_mm*mm, height=dm_dim_mm*mm)
-
-    #c.drawImage(qr_img, x=50*mm, y=120*mm, width=100*mm, height=100*mm)
-    c.drawString(50*mm, 110*mm, "DataMatrix Payload:")
-    c.drawString(50*mm, 105*mm, payload[:60] + "..." if len(payload) > 60 else payload)
+    #c.drawString(50*mm, 110*mm, "DataMatrix Payload:")
+    #c.drawString(50*mm, 105*mm, payload[:60] + "..." if len(payload) > 60 else payload)
 
     c.showPage()
     c.save()
