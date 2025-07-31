@@ -51,10 +51,6 @@ jobs:
         helm upgrade --install flask-app ./helm/helm-chart \
           --namespace default \
           --values ./helm/helm-chart/values.yaml
-
-    #verify Helm Access
-    - name: Verify Helm access
-      run: kubectl auth can-i create deployments --as=system:serviceaccount:default:github-actions-sa
     
     #verify deployment
     - name: Verify Deployment
