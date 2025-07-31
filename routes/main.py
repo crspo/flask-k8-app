@@ -35,7 +35,7 @@ def upload_and_export():
         return render_template("error.html", error_msg="No file or input provided.")
     
     serials = [line.strip() for line in lines if line.strip()]
-    payload = '\n'.join(serials)
+    payload = '\r\n'.join(serials)
     #end input logic
 
 

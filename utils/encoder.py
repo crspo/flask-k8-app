@@ -19,9 +19,7 @@ def encode_text_to_qr(text: str, scale: int = 3) -> str:
     """
     svg = DataMatrix(text).svg()
     png_bytes = cairosvg.svg2png(bytestring=svg.encode('utf-8'))
-    #qr = segno.make_symbol(text, symbol_type='dm')
-    #buffer = io.BytesIO()
-    #qr.save(buffer, kind='png', scale=scale)
+    
     return base64.b64encode(png_bytes).decode('utf-8')
 
 def generate_qr_pdf(payload: str, scale: int = 3) -> bytes:
@@ -43,16 +41,11 @@ def generate_qr_pdf(payload: str, scale: int = 3) -> bytes:
     img_stream = io.BytesIO(png_bytes)
     dm_img = ImageReader(img_stream)
 
-    #qr.save(qr_buffer, kind='png', scale=scale, dark='black', light='white')
-    #qr_buffer.seek(0)
-    #qr_img = ImageReader(qr_buffer)
-    
-    # Draw QR code onto PDF
-    # Base size (e.g. scale 3 = small, scale 5 = medium, scale 8 = large)
+
     scale_size_map = {
-        2: 40,    # mm
-        3: 65,   # mm
-        5: 85    # mm
+        2: 60,    # mm
+        3: 100,   # mm
+        5: 140    # mm
     }
 
     dm_dim_mm = scale_size_map.get(scale, 100)
