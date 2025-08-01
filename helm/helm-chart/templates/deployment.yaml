@@ -16,5 +16,5 @@ spec:
       - name: qr-code-app
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
         ports:
-        - containerPort: {{ .Values.containerPort }}
+        - containerPort: {{ .Values.app.containerPort }}
 

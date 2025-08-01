@@ -1,28 +1,28 @@
+app:
+  name: flask-app
+  containerPort: 5000
+
 image:
   repository: chandansyd05/flask-k8-app
   tag: latest
-containerPort: 5000
-
-ingress:
-  host: chandan.world
-  secretName: qr-tls
-  path: /
 
 service:
   type: ClusterIP
   port: 80
   targetPort: 5000
 
+ingress:
+  host: chandan.world
+  path: /
+  secretName: qr-tls
+  namespaceLabel: ingress-nginx
+  podSelector:
+    app.kubernetes.io/name: ingress-nginx
+
 rbac:
   create: true
-  serviceAccount:
-    name: flask-app-sa
+  serviceAccountName: flask-app-sa
 
 networkPolicy:
   enabled: true
-  ingress:
-    from:
-      app.kubernetes.io/name: ingress-nginx
-service:
-  port: 5000
 

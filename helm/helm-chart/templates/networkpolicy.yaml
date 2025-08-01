@@ -16,11 +16,11 @@ spec:
   ingress:
     - from:
          - namespaceSelector:
-            matchLabels:
-              name: {{ .Values.ingress.namespaceLabel }}
-        - podSelector:
-            matchLabels:
-              {{- toYaml .Values.networkPolicy.ingress.from | nindent 14 }}
+             matchLabels:
+               name: {{ .Values.ingress.namespaceLabel }}
+           podSelector:
+             matchLabels:
+               {{- toYaml .Values.ingress.podSelector | nindent 6 }}
       ports:
         - protocol: TCP
           port: {{ .Values.service.port }}
