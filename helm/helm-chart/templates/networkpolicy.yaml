@@ -15,6 +15,9 @@ spec:
       app: {{ include "yourchart.name" . }}
   ingress:
     - from:
+         - namespaceSelector:
+            matchLabels:
+              name: {{ .Values.ingress.namespaceLabel }}
         - podSelector:
             matchLabels:
               {{- toYaml .Values.networkPolicy.ingress.from | nindent 14 }}
