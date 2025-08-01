@@ -18,3 +18,11 @@ rbac:
   serviceAccount:
     name: flask-app-sa
 
+networkPolicy:
+  enabled: true
+  ingress:
+    from:
+      app.kubernetes.io/name: ingress-nginx
+service:
+  port: 5000
+
