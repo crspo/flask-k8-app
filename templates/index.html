@@ -6,43 +6,67 @@ Includes form fields for file input and submission.
 -->
 
 {% extends "layout.html"%}
+{% block title %}Home{% endblock %}
 
 {% block content %}
-<div class="jumbotron">
-<p>Welcome to  Serial to QR Converter</p>
-<p>Let's get your serials converted!</p>
-<p>Please upload the file using below link</p>
-<ul>
-  <li>Filename must be valid: </li>
-  <li>Only text serials in the file</li>
-  <li>Must not have any images</li>
-  <li>File extension should only be 'txt'</li>
-</ul>
 
+<div class="container">
+  <!-- Hero Section -->
+  <div class="p-5 mb-4 bg-light rounded-3">
+    <div class="container-fluid py-5">
+      <h1 class="display-5 fw-bold">Welcome to Serial to QR Converter</h1>
+      <p class="lead">Let's get your serials converted into QR codes!</p>
+    </div>
+  </div>
 
-  <h2>Upload Your Serial File</h2>
-  
-<form method="POST" action="{{ url_for('main.upload_and_export') }}" enctype="multipart/form-data">
-  <input type="file" name="file"/>
+  <!-- Instructions Card -->
+  <div class="card mb-4">
+    <div class="card-header">
+      <h5>Upload Guidelines</h5>
+    </div>
+    <div class="card-body">
+      <ul>
+	<li>File must be valid text file (eg: xyz.txt)</li>
+        <li>Only text serials in the file</li>
+        <li>No images or binary content</li>
+      </ul>
+    </div>
+  </div>
 
-   <!-- Paste Serials -->
-  <label>Or paste serials directly:</label><br/>
-  <textarea name="serials" rows="8" cols="60" placeholder="One serial per line..."></textarea>
-  <br/><br/>
-   
-  <!-- select size of the QR -->
-   <br/>
-  <label for="size">QR Code Size:</label>
-  <select name="size">
-    <option value="small">Small</option>
-    <option value="medium" selected>Medium</option>
-    <option value="large">Large</option>
-  </select>
-  <br/>
-  <button type="submit">Generate QR & Download PDF</button>
-</form>
+  <!-- Upload Form -->
+  <div class="card">
+    <div class="card-header">
+      <h5>Upload Your Serial File</h5>
+    </div>
+    <div class="card-body">
+      <form method="POST" action="{{ url_for('main.upload_and_export') }}" enctype="multipart/form-data">
 
+        <div class="mb-3">
+          <label for="file" class="form-label">Choose a text file</label>
+          <input type="file" class="form-control" id="file" name="file">
+        </div>
+	<div class="mb-3">
+	  <label>Or paste serials directly:</label><br/>
+  	  <textarea name="serials" rows="8" cols="60" placeholder="One serial per line..."></textarea>
+  	  <br/><br/>
+	</div>
 
-
+	<div class="mb-3">
+	  <!-- select size of the QR -->
+ 	 <label for="size">QR Code Size:</label>
+  	 <select name="size">
+    	   <option value="small">Small</option>
+    	   <option value="medium" selected>Medium</option>
+           <option value="large">Large</option>
+  	 </select>
+	</div>
+        
+	<button type="submit" class="btn btn-primary">Generate QR</button>
+      </form>
+    </div>
+  </div>
 </div>
 {% endblock %}
+
+
+  

@@ -9,14 +9,15 @@ bp = Blueprint('main', __name__)
 def index():
     return render_template('index.html')
 
-#@bp.route('/about')
-#def about():
-#    return render_template('about.html')
+@bp.route('/about')
+def about():
+    return render_template('about.html')
 
-#@bp.route('/products')
-#def about():
-#    return render_template('products.html')
-  
+@bp.route('/products')
+def products():
+    return render_template('products.html')
+
+
 @bp.route('/upload', methods=['POST'])
 def upload_and_export():
     """
