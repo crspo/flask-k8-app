@@ -9,9 +9,9 @@ import io
 import base64
 
 SCALE_SIZE_MAP_MM = {
-        2: 40,   # mm
-        3: 60,  # mm
-        5: 120   # mm
+        2: 25,   # mm
+        3: 50,  # mm
+        5: 100   # mm
     }
 
 def encode_text_to_qr(text: str, scale: int = 3) -> str:
@@ -42,10 +42,12 @@ def encode_text_to_qr(text: str, scale: int = 3) -> str:
 
 def generate_qr_pdf(payload: str, scale: int = 3) -> bytes:
     """
-    Generates a PDF containing a QR code from the given payload.
+    Generates a PDF containing tiled QR codes from the given payload.
+    Displays the first serial above and the last serial below each QR code.
 
     Args:
-        payload (str): The text to encode as a QR code.
+        payload (str): Multiline string with each line as a separate QR code.
+        scale (int): Scale factor for QR code size.
 
     Returns:
         bytes: Byte content of the generated PDF.
@@ -53,38 +55,66 @@ def generate_qr_pdf(payload: str, scale: int = 3) -> bytes:
     buffer = io.BytesIO()
     c = canvas.Canvas(buffer, pagesize=A4)
 
-    """ 
-        Create DM 
-    """
+    serials = [line.strip() for line in payload.splitlines() if line.strip()]
+    if not serials:
+        return b''
 
-    dm_dim_mm = SCALE_SIZE_MAP_MM.get(scale, 100)
-    dm_dim_px = int(dm_dim_mm * 3.78)
-    # Generate SVG and convert to PNG with specified resolution
-    svg = DataMatrix(payload).svg()
-    
+    first_serial = serials[0]
+    last_serial = serials[-1]
 
-    png_bytes = cairosvg.svg2png(
-        bytestring=svg.encode('utf-8'),
-        output_width=dm_dim_px,
-        output_height=dm_dim_px
-    )
+    qr_dim_mm = SCALE_SIZE_MAP_MM.get(scale, 60)
+    qr_dim_px = int(qr_dim_mm * 3.78)
 
-    with Image.open(io.BytesIO(png_bytes)) as img:
-        flattened = Image.new("RGB", img.size, (255, 255, 255))
-        flattened.paste(img, mask=img.getchannel("A"))
+    page_width_mm, page_height_mm = A4[0] / mm, A4[1] / mm
+    margin_mm = 10
+    spacing_mm = 5
+    max_cols = int((page_width_mm - 2 * margin_mm) // (qr_dim_mm + spacing_mm))
+    max_rows = int((page_height_mm - 2 * margin_mm) // (qr_dim_mm + spacing_mm))
+    qr_per_page = max_cols * max_rows
 
-        # Convert to ImageReader before drawing
-        img_stream = io.BytesIO()
-        flattened.save(img_stream, format="PNG")
-        img_stream.seek(0)
-        dm_img = ImageReader(img_stream)
-    
+    def draw_qr(x_mm, y_mm, qr_svg):
+        png_bytes = cairosvg.svg2png(
+            bytestring=qr_svg.encode('utf-8'),
+            output_width=qr_dim_px,
+            output_height=qr_dim_px
+        )
+        with Image.open(io.BytesIO(png_bytes)) as img:
+            flattened = Image.new("RGB", img.size, (255, 255, 255))
+            flattened.paste(img, mask=img.getchannel("A"))
+            img_stream = io.BytesIO()
+            flattened.save(img_stream, format="PNG")
+            img_stream.seek(0)
+            qr_img = ImageReader(img_stream)
+            c.drawImage(qr_img, x_mm * mm, y_mm * mm, qr_dim_mm * mm, qr_dim_mm * mm)
 
-    c.drawImage(dm_img, x=50*mm, y=120*mm, width=dm_dim_mm*mm, height=dm_dim_mm*mm)
-    #c.drawString(50*mm, 110*mm, "DataMatrix Payload:")
-    #c.drawString(50*mm, 105*mm, payload[:60] + "..." if len(payload) > 60 else payload)
+            # Add labels
+            label_font_size = 8
+            c.setFont("Helvetica", label_font_size)
+            c.drawCentredString(
+                (x_mm + qr_dim_mm / 2) * mm,
+                (y_mm + qr_dim_mm + 2) * mm,
+                first_serial
+            )
+            c.drawCentredString(
+                (x_mm + qr_dim_mm / 2) * mm,
+                (y_mm - 4) * mm,
+                last_serial
+            )
+
+    for i, serial in enumerate(serials):
+        if i % qr_per_page == 0 and i != 0:
+            c.showPage()
+
+        row = (i % qr_per_page) // max_cols
+        col = (i % qr_per_page) % max_cols
+        x_mm = margin_mm + col * (qr_dim_mm + spacing_mm)
+        y_mm = page_height_mm - margin_mm - (row + 1) * (qr_dim_mm + spacing_mm)
+
+        qr_svg = DataMatrix(serial).svg()
+        draw_qr(x_mm, y_mm, qr_svg)
 
     c.showPage()
     c.save()
     buffer.seek(0)
     return buffer.getvalue()
+

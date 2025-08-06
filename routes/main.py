@@ -1,12 +1,21 @@
-from utils.encoder import generate_qr_pdf
+from utils.encoder import encode_text_to_qr, generate_qr_pdf
 from flask import send_file
 from flask import Blueprint, request, Response, render_template
 import io
+import base64
 
 bp = Blueprint('main', __name__)
 @bp.route('/')
 def index():
     return render_template('index.html')
+
+@bp.route('/about')
+def about():
+    return render_template('about.html')
+
+@bp.route('/products')
+def about():
+    return render_template('products.html')
   
 @bp.route('/upload', methods=['POST'])
 def upload_and_export():
@@ -40,13 +49,11 @@ def upload_and_export():
 
 
     # Generate QR preview
-    from utils.encoder import encode_text_to_qr, generate_qr_pdf
     img_base64 = encode_text_to_qr(payload, scale=qr_size)
 
     # Generate PDF and store in memory (base64 encoding optional if you want download link)
     pdf_bytes = generate_qr_pdf(payload, scale=qr_size)
     # Save PDF to memory for download
-    import base64
     pdf_b64 = base64.b64encode(pdf_bytes).decode('utf-8')
 
     if request.method == 'POST':
