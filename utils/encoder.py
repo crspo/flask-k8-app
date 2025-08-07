@@ -71,13 +71,26 @@ def generate_qr_pdf(payload: str, scale: int = 3) -> bytes:
     chunk_size = 50
     chunks = [serials[i:i + chunk_size] for i in range(0, len(serials), chunk_size)]
 
-    for chunk in chunks:
+    for i, chunk in enumerate(chunks):
         first_serial = chunk[0]
         last_serial = chunk[-1]
         chunk_payload = "\n".join(chunk)
 
         qr_svg = DataMatrix(chunk_payload).svg()
 
+        grid_index = i % qr_per_page
+        row = grid_index // max_cols
+        col = grid_index % max_cols
+        x_mm = margin_mm + col * (qr_dim_mm + spacing_mm)
+        y_mm = page_height_mm - margin_mm - (row + 1) * (qr_dim_mm + spacing_mm)
+        
+
+        draw_qr(x_mm, y_mm, qr_svg, first_serial, last_serial)
+        # Start new page if grid is full
+        if (i + 1) % qr_per_page == 0:
+            c.showPage()
+    
+    def draw_qr(x_mm, y_mm, qr_svg, first_serial, last_serial)
         # Convert SVG to PNG
         png_bytes = cairosvg.svg2png(
             bytestring=qr_svg.encode('utf-8'),
@@ -107,7 +120,6 @@ def generate_qr_pdf(payload: str, scale: int = 3) -> bytes:
                 last_serial
             )
 
-        c.showPage()
 
     c.save()
     buffer.seek(0)
