@@ -90,7 +90,7 @@ def generate_qr_pdf(payload: str, scale: int = 3) -> bytes:
         if (i + 1) % qr_per_page == 0:
             c.showPage()
     
-    def draw_qr(x_mm, y_mm, qr_svg, first_serial, last_serial)
+    def draw_qr(x_mm, y_mm, qr_svg, first_serial, last_serial):
         # Convert SVG to PNG
         png_bytes = cairosvg.svg2png(
             bytestring=qr_svg.encode('utf-8'),
