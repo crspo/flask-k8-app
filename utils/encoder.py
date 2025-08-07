@@ -67,6 +67,7 @@ def generate_qr_pdf(payload: str, scale: int = 3) -> bytes:
     spacing_mm = 5
     x_mm = margin_mm
     y_mm = page_height_mm - margin_mm - qr_dim_mm
+    qr_per_page = 6
 
     chunk_size = 50
     chunks = [serials[i:i + chunk_size] for i in range(0, len(serials), chunk_size)]
