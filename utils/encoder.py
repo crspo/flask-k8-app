@@ -67,7 +67,9 @@ def generate_qr_pdf(payload: str, scale: int = 3) -> bytes:
     spacing_mm = 5
     x_mm = margin_mm
     y_mm = page_height_mm - margin_mm - qr_dim_mm
-    qr_per_page = 6
+    max_cols = int((page_width_mm - 2 * margin_mm) // (qr_dim_mm + spacing_mm))
+    max_rows = int((page_height_mm - 2 * margin_mm) // (qr_dim_mm + spacing_mm))
+    qr_per_page = max_cols * max_rows
 
     chunk_size = 50
     chunks = [serials[i:i + chunk_size] for i in range(0, len(serials), chunk_size)]
@@ -86,43 +88,41 @@ def generate_qr_pdf(payload: str, scale: int = 3) -> bytes:
         y_mm = page_height_mm - margin_mm - (row + 1) * (qr_dim_mm + spacing_mm)
         
 
-        draw_qr(x_mm, y_mm, qr_svg, first_serial, last_serial)
+        draw_qr(c, x_mm, y_mm, qr_svg, qr_dim_mm, qr_dim_px, first_serial, last_serial)
         # Start new page if grid is full
         if (i + 1) % qr_per_page == 0:
             c.showPage()
-    
-    def draw_qr(x_mm, y_mm, qr_svg, first_serial, last_serial):
-        # Convert SVG to PNG
-        png_bytes = cairosvg.svg2png(
-            bytestring=qr_svg.encode('utf-8'),
-            output_width=qr_dim_px,
-            output_height=qr_dim_px
-        )
-        with Image.open(io.BytesIO(png_bytes)) as img:
-            flattened = Image.new("RGB", img.size, (255, 255, 255))
-            flattened.paste(img, mask=img.getchannel("A"))
-            img_stream = io.BytesIO()
-            flattened.save(img_stream, format="PNG")
-            img_stream.seek(0)
-            qr_img = ImageReader(img_stream)
-            c.drawImage(qr_img, x_mm * mm, y_mm * mm, qr_dim_mm * mm, qr_dim_mm * mm)
-
-            # Label the QR with its own first/last serials
-            label_font_size = 8
-            c.setFont("Helvetica", label_font_size)
-            c.drawCentredString(
-                (x_mm + qr_dim_mm / 2) * mm,
-                (y_mm + qr_dim_mm + 2) * mm,
-                first_serial
-            )
-            c.drawCentredString(
-                (x_mm + qr_dim_mm / 2) * mm,
-                (y_mm - 4) * mm,
-                last_serial
-            )
-
-
+    c.showPage()
     c.save()
     buffer.seek(0)
     return buffer.getvalue()
+    
+def draw_qr(c, x_mm, y_mm, qr_svg, qr_dim_mm, qr_dim_px, first_serial, last_serial):
+    # Convert SVG to PNG
+    png_bytes = cairosvg.svg2png(
+        bytestring=qr_svg.encode('utf-8'),
+        output_width=qr_dim_px,
+        output_height=qr_dim_px
+    )
+    with Image.open(io.BytesIO(png_bytes)) as img:
+        flattened = Image.new("RGB", img.size, (255, 255, 255))
+        flattened.paste(img, mask=img.getchannel("A"))
+        img_stream = io.BytesIO()
+        flattened.save(img_stream, format="PNG")
+        img_stream.seek(0)
+        qr_img = ImageReader(img_stream)
+        c.drawImage(qr_img, x_mm * mm, y_mm * mm, qr_dim_mm * mm, qr_dim_mm * mm)
 
+        # Label the QR with its own first/last serials
+        label_font_size = 8
+        c.setFont("Helvetica", label_font_size)
+        c.drawCentredString(
+            (x_mm + qr_dim_mm / 2) * mm,
+            (y_mm + qr_dim_mm + 2) * mm,
+            first_serial
+        )
+        c.drawCentredString(
+            (x_mm + qr_dim_mm / 2) * mm,
+            (y_mm - 4) * mm,
+            last_serial
+        )
