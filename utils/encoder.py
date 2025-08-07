@@ -59,20 +59,26 @@ def generate_qr_pdf(payload: str, scale: int = 3) -> bytes:
     if not serials:
         return b''
 
-    first_serial = serials[0]
-    last_serial = serials[-1]
-
     qr_dim_mm = SCALE_SIZE_MAP_MM.get(scale, 60)
     qr_dim_px = int(qr_dim_mm * 3.78)
 
     page_width_mm, page_height_mm = A4[0] / mm, A4[1] / mm
     margin_mm = 10
     spacing_mm = 5
-    max_cols = int((page_width_mm - 2 * margin_mm) // (qr_dim_mm + spacing_mm))
-    max_rows = int((page_height_mm - 2 * margin_mm) // (qr_dim_mm + spacing_mm))
-    qr_per_page = max_cols * max_rows
+    x_mm = margin_mm
+    y_mm = page_height_mm - margin_mm - qr_dim_mm
 
-    def draw_qr(x_mm, y_mm, qr_svg):
+    chunk_size = 50
+    chunks = [serials[i:i + chunk_size] for i in range(0, len(serials), chunk_size)]
+
+    for chunk in chunks:
+        first_serial = chunk[0]
+        last_serial = chunk[-1]
+        chunk_payload = "\n".join(chunk)
+
+        qr_svg = DataMatrix(chunk_payload).svg()
+
+        # Convert SVG to PNG
         png_bytes = cairosvg.svg2png(
             bytestring=qr_svg.encode('utf-8'),
             output_width=qr_dim_px,
@@ -87,7 +93,7 @@ def generate_qr_pdf(payload: str, scale: int = 3) -> bytes:
             qr_img = ImageReader(img_stream)
             c.drawImage(qr_img, x_mm * mm, y_mm * mm, qr_dim_mm * mm, qr_dim_mm * mm)
 
-            # Add labels
+            # Label the QR with its own first/last serials
             label_font_size = 8
             c.setFont("Helvetica", label_font_size)
             c.drawCentredString(
@@ -101,19 +107,8 @@ def generate_qr_pdf(payload: str, scale: int = 3) -> bytes:
                 last_serial
             )
 
-    for i, serial in enumerate(serials):
-        if i % qr_per_page == 0 and i != 0:
-            c.showPage()
+        c.showPage()
 
-        row = (i % qr_per_page) // max_cols
-        col = (i % qr_per_page) % max_cols
-        x_mm = margin_mm + col * (qr_dim_mm + spacing_mm)
-        y_mm = page_height_mm - margin_mm - (row + 1) * (qr_dim_mm + spacing_mm)
-
-        qr_svg = DataMatrix(serial).svg()
-        draw_qr(x_mm, y_mm, qr_svg)
-
-    c.showPage()
     c.save()
     buffer.seek(0)
     return buffer.getvalue()
