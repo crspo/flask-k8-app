@@ -67,9 +67,9 @@ def generate_qr_pdf(payload: str, scale: int = 50) -> bytes:
     margin_mm = 10
     spacing_mm = 5
     x_mm = margin_mm
-    y_mm = page_height_mm - margin_mm - qr_dim_mm
-    max_cols = int((page_width_mm - 2 * margin_mm) // (qr_dim_mm + spacing_mm))
-    max_rows = int((page_height_mm - 2 * margin_mm) // (qr_dim_mm + spacing_mm))
+    y_mm = page_height_mm - margin_mm - scale
+    max_cols = int((page_width_mm - 2 * margin_mm) // (scale + spacing_mm))
+    max_rows = int((page_height_mm - 2 * margin_mm) // (scale + spacing_mm))
     qr_per_page = max_cols * max_rows
 
     chunk_size = 50
@@ -85,11 +85,11 @@ def generate_qr_pdf(payload: str, scale: int = 50) -> bytes:
         grid_index = i % qr_per_page
         row = grid_index // max_cols
         col = grid_index % max_cols
-        x_mm = margin_mm + col * (qr_dim_mm + spacing_mm)
-        y_mm = page_height_mm - margin_mm - (row + 1) * (qr_dim_mm + spacing_mm)
+        x_mm = margin_mm + col * (scale + spacing_mm)
+        y_mm = page_height_mm - margin_mm - (row + 1) * (scale + spacing_mm)
         
 
-        draw_qr(c, x_mm, y_mm, qr_svg, qr_dim_mm, qr_dim_px, first_serial, last_serial)
+        draw_qr(c, x_mm, y_mm, qr_svg, scale, qr_dim_px, first_serial, last_serial)
         # Start new page if grid is full
         if (i + 1) % qr_per_page == 0:
             c.showPage()
