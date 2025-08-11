@@ -24,13 +24,13 @@ def upload_and_export():
     Handles file upload, generates QR preview, and offers PDF download link.
     """
     size_map = {
-    'small': 2,
-    'medium': 3,
-    'large': 5
+    'small': 25,
+    'medium': 50,
+    'large': 100
     }
 
     selected_size = request.form.get('size', 'medium')
-    qr_size = size_map.get(selected_size, 3)  # default to Medium if not recognized
+    qr_size = size_map.get(selected_size, 50)  # default to Medium if not recognized
 
     file = request.files.get('file')
     serials_input = request.form.get('serials', '').strip()

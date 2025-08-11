@@ -8,13 +8,14 @@ import cairosvg
 import io
 import base64
 
+'''
 SCALE_SIZE_MAP_MM = {
         2: 25,   # mm
         3: 50,  # mm
         5: 100   # mm
     }
-
-def encode_text_to_qr(text: str, scale: int = 3) -> str:
+'''
+def encode_text_to_qr(text: str, scale: int = 50) -> str:
     """
     Encodes text into a DM code and returns a Base64-encoded PNG.
 
@@ -25,8 +26,8 @@ def encode_text_to_qr(text: str, scale: int = 3) -> str:
         str: Base64-encoded PNG string of the QR code.
     """
 
-    dm_dim_mm = SCALE_SIZE_MAP_MM.get(scale, 100)
-    dm_dim_px = int(dm_dim_mm * 3.78)  # Approx. 96 dpi
+    #dm_dim_mm = SCALE_SIZE_MAP_MM.get(scale, 100)
+    dm_dim_px = int(scale * 3.78)  # Approx. 96 dpi
 
     # Generate SVG
     svg = DataMatrix(text).svg()
@@ -40,7 +41,7 @@ def encode_text_to_qr(text: str, scale: int = 3) -> str:
 
     return base64.b64encode(png_bytes).decode('utf-8')
 
-def generate_qr_pdf(payload: str, scale: int = 3) -> bytes:
+def generate_qr_pdf(payload: str, scale: int = 50) -> bytes:
     """
     Generates a PDF containing tiled QR codes from the given payload.
     Displays the first serial above and the last serial below each QR code.
@@ -59,8 +60,8 @@ def generate_qr_pdf(payload: str, scale: int = 3) -> bytes:
     if not serials:
         return b''
 
-    qr_dim_mm = SCALE_SIZE_MAP_MM.get(scale, 60)
-    qr_dim_px = int(qr_dim_mm * 3.78)
+    #qr_dim_mm = SCALE_SIZE_MAP_MM.get(scale, 60)
+    qr_dim_px = int(scale * 3.78)
 
     page_width_mm, page_height_mm = A4[0] / mm, A4[1] / mm
     margin_mm = 10
