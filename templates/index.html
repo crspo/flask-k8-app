@@ -1,72 +1,78 @@
-<!--
-index.html
-
-Child template that extends layout.html to render upload form UI.
-Includes form fields for file input and submission.
--->
-
-{% extends "layout.html"%}
+{% extends "layout.html" %}
 {% block title %}Home{% endblock %}
 
 {% block content %}
-
 <div class="container">
+
   <!-- Hero Section -->
-  <div class="p-5 mb-4 bg-light rounded-3">
-    <div class="container-fluid py-5">
-      <h1 class="display-5 fw-bold">Welcome to Serial to QR Converter</h1>
-      <p class="lead">Let's get your serials converted into QR codes!</p>
+  <div class="p-5 mb-4 bg-light rounded-3 shadow-sm">
+    <div class="container-fluid py-5 text-center">
+      <h1 class="display-5 fw-bold">🔄 Serial to QR Converter</h1>
+      <p class="lead">Convert your serials into QR codes or decode DataMatrix images back to text.</p>
     </div>
   </div>
 
-  <!-- Instructions Card -->
-  <div class="card mb-4">
-    <div class="card-header">
-      <h5>Upload Guidelines</h5>
+  <!-- Instructions -->
+  <div class="card mb-4 shadow-sm">
+    <div class="card-header bg-primary text-white">
+      <h5 class="mb-0">📋 Upload Guidelines</h5>
     </div>
     <div class="card-body">
-      <ul>
-	<li>File must be valid text file (eg: xyz.txt)</li>
-        <li>Only text serials in the file</li>
-        <li>No images or binary content</li>
+      <ul class="mb-0">
+        <li>Upload a valid <strong>.txt</strong> file with one serial per line</li>
+        <li>Or paste serials directly into the form</li>
+        <li>Only plain text — no images or binary content</li>
       </ul>
     </div>
   </div>
 
-  <!-- Upload Form -->
-  <div class="card">
-    <div class="card-header">
-      <h5>Upload Your Serial File</h5>
+  <!-- QR Generation Form -->
+  <div class="card mb-4 shadow-sm">
+    <div class="card-header bg-success text-white">
+      <h5 class="mb-0">📦 Generate QR Codes</h5>
     </div>
     <div class="card-body">
       <form method="POST" action="{{ url_for('main.upload_and_export') }}" enctype="multipart/form-data">
-
         <div class="mb-3">
-          <label for="file" class="form-label">Choose a text file</label>
+          <label for="file" class="form-label">Upload a text file</label>
           <input type="file" class="form-control" id="file" name="file">
         </div>
-	<div class="mb-3">
-	  <label>Or paste serials directly:</label><br/>
-  	  <textarea name="serials" rows="8" cols="60" placeholder="One serial per line..."></textarea>
-  	  <br/><br/>
-	</div>
 
-	<div class="mb-3">
-	  <!-- select size of the QR -->
- 	 <label for="size">QR Code Size:</label>
-  	 <select name="size">
-    	   <option value="small">Small</option>
-    	   <option value="medium" selected>Medium</option>
-           <option value="large">Large</option>
-  	 </select>
-	</div>
-        
-	<button type="submit" class="btn btn-primary">Generate QR</button>
+        <div class="mb-3">
+          <label for="serials" class="form-label">Or paste serials below</label>
+          <textarea name="serials" class="form-control" rows="6" placeholder="One serial per line..."></textarea>
+        </div>
+
+        <div class="mb-3">
+          <label for="size" class="form-label">QR Code Size</label>
+          <select name="size" class="form-select">
+            <option value="small">Small</option>
+            <option value="medium" selected>Medium</option>
+            <option value="large">Large</option>
+          </select>
+        </div>
+
+        <button type="submit" class="btn btn-success w-100">🚀 Generate QR</button>
       </form>
     </div>
   </div>
+
+  <!-- DataMatrix Decoding Form -->
+  <div class="card shadow-sm">
+    <div class="card-header bg-info text-white">
+      <h5 class="mb-0">🔍 Decode DataMatrix</h5>
+    </div>
+    <div class="card-body">
+      <form method="POST" action="{{ url_for('main.decode_datamatrix') }}" enctype="multipart/form-data">
+        <div class="mb-3">
+          <label for="file" class="form-label">Upload an image file</label>
+          <input type="file" class="form-control" id="file" name="file">
+        </div>
+        <button type="submit" class="btn btn-info w-100">🧠 Decode to Text</button>
+      </form>
+    </div>
+  </div>
+
 </div>
 {% endblock %}
 
-
-  
