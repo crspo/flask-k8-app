@@ -1,6 +1,5 @@
 from utils.encoder import encode_text_to_qr, generate_qr_pdf
-from flask import send_file, Flask, jsonify
-from werkzeug.exceptions import HTTPException
+from flask import send_file, Flask
 from flask import Blueprint, request, Response, render_template
 import io
 import base64
@@ -90,19 +89,3 @@ def decode_datamatrix():
     # Return result (could be JSON or render a template)
     return render_template("decode.html", decoded_text=decoded_text)
     
-# Handle HTTP exceptions (e.g., 404, 403, etc.)
-@bp.errorhandler(HTTPException)
-def handle_http_exception(e):
-    if request.accept_mimetypes.accept_json:
-        return jsonify({'error': e.name, 'description': e.description}), e.code
-    else:
-        return render_template('error.html', error=e), e.code
-
-# Handle non-HTTP exceptions (e.g., bugs, crashes)
-@bp.errorhandler(Exception)
-def handle_generic_exception(e):
-    bp.logger.error(f"Unhandled Exception: {e}")
-    if request.accept_mimetypes.accept_json:
-        return jsonify({'error': 'Internal Server Error', 'description': str(e)}), 500
-    else:
-        return render_template('error.html', error=e), 500
