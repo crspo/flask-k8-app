@@ -2,7 +2,7 @@ name: Build and Deploy Flask App
 
 on:
   push:
-    branches: [ "current" ]
+    branches: [ "product" ]
 
 jobs:
   build-and-deploy:

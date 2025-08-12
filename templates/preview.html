@@ -7,11 +7,14 @@
       <p class="lead">
         Welcome to <strong>Text To Datamatrix Converter</strong> — a streamlined solution designed to simplify QR code generation and PDF creation with precision and flexibility.
       </p>
-      <h1 class="mb-4"> DM code preview: </h1>
+      <h1 class="mb-4"> Your DM code preview: </h1>
       		<img id="qrImage" src="data:image/png;base64,{{ img_base64 }}" alt="QR Code" />
 		<br/>
-		<button onclick="printQRCode()">Print QR Code</button>
-		<br/>
+		<button onclick="printQRCode()">Print Your DM Code</button>
+		<br/><br/><br/>
+		<a download="DM-code.pdf" href="data:application/pdf;base64,{{ pdf_b64 }}">Download as PDF</a>
+		<br/><br/>
+		<a href="/">Convert Another</a>
       <script>
 	function printQRCode() {
     		const img = document.getElementById('qrImage');

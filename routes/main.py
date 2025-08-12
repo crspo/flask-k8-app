@@ -64,3 +64,23 @@ def upload_and_export():
         return Response(f'''
             <h3>QR Code Preview:</h3> <h2> Result out of bound </h2>
             ''', content_type='text/html')
+
+from pylibdmtx.pylibdmtx import decode
+@bp.route('/decode-dm', methods=['POST'])
+def decode_datamatrix():
+    if 'file' not in request.files:
+        return jsonify({'error': 'No file part in the request'}), 400
+
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({'error': 'No selected file'}), 400
+
+    try:
+        img = Image.open(file.stream).convert("RGB")
+        decoded_objects = decode(img)
+        decoded_texts = [obj.data.decode("utf-8") for obj in decoded_objects]
+
+        return render_template("decode.html", decoded_texts=decoded_texts)
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
