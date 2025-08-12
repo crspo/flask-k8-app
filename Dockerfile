@@ -13,6 +13,9 @@ RUN apt-get update && apt-get install -y \
     libdmtx0b \
     libdmtx-dev \
     shared-mime-info \
+    libfontconfig1 \
+    build-essential \
+    python3-distutils \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
@@ -36,6 +39,8 @@ RUN apt-get update && apt-get install -y \
     libdmtx-dev \
     shared-mime-info \
     libfontconfig1 \
+    build-essential \
+    python3-distutils \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
