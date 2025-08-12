@@ -88,5 +88,5 @@ def decode_datamatrix():
         raise BadRequest(f"Decoding failed: {str(ve)}")
 
     # Return result (could be JSON or render a template)
-    return render_template("decode.html", decoded_text=decoded_text)
+    return render_template("decode.html", decoded_texts=decoded_texts)
     
