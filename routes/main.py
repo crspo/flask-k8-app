@@ -101,7 +101,7 @@ def handle_http_exception(e):
 # Handle non-HTTP exceptions (e.g., bugs, crashes)
 @bp.errorhandler(Exception)
 def handle_generic_exception(e):
-    app.logger.error(f"Unhandled Exception: {e}")
+    bp.logger.error(f"Unhandled Exception: {e}")
     if request.accept_mimetypes.accept_json:
         return jsonify({'error': 'Internal Server Error', 'description': str(e)}), 500
     else:
