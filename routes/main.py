@@ -1,5 +1,6 @@
 from utils.encoder import encode_text_to_qr, generate_qr_pdf
 from flask import send_file, Flask, jsonify
+from werkzeug.exceptions import HTTPException
 from flask import Blueprint, request, Response, render_template
 import io
 import base64
