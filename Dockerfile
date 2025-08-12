@@ -10,7 +10,7 @@ RUN apt-get update && apt-get install -y \
     libpango-1.0-0 \
     libpangocairo-1.0-0 \
     libgdk-pixbuf2.0-0 \
-    libdmtx0a \
+    libdmtx0b \
     libdmtx-dev \
     shared-mime-info \
     && apt-get clean \
@@ -32,7 +32,7 @@ RUN apt-get update && apt-get install -y \
     libpango-1.0-0 \
     libpangocairo-1.0-0 \
     libgdk-pixbuf2.0-0 \
-    libdmtx0a \
+    libdmtx0b \
     libdmtx-dev \
     shared-mime-info \
     libfontconfig1 \
