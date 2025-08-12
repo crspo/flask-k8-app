@@ -4,3 +4,4 @@ cairosvg==2.8.2
 Pillow==10.3.0
 reportlab==4.0.7
 pylibdmtx
+packaging
