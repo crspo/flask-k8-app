@@ -8,11 +8,11 @@
   <div class="p-5 mb-4 bg-light rounded-3 shadow-sm">
     <div class="container-fluid py-5 text-center">
       <h1 class="display-5 fw-bold">🔄 Serial to QR Converter</h1>
-      <p class="lead">Convert your serials into QR codes or decode DataMatrix images back to text.</p>
+      <p class="lead">Convert serials into QR codes or decode DataMatrix images back to text.</p>
     </div>
   </div>
 
-  <!-- Instructions -->
+  <!-- Upload Guidelines -->
   <div class="card mb-4 shadow-sm">
     <div class="card-header bg-primary text-white">
       <h5 class="mb-0">📋 Upload Guidelines</h5>
@@ -34,18 +34,18 @@
     <div class="card-body">
       <form method="POST" action="{{ url_for('main.upload_and_export') }}" enctype="multipart/form-data">
         <div class="mb-3">
-          <label for="file" class="form-label">Upload a text file</label>
-          <input type="file" class="form-control" id="file" name="file">
+          <label for="qrFile" class="form-label">Upload a text file</label>
+          <input type="file" class="form-control" id="qrFile" name="file" accept=".txt" aria-label="Upload text file">
         </div>
 
         <div class="mb-3">
           <label for="serials" class="form-label">Or paste serials below</label>
-          <textarea name="serials" class="form-control" rows="6" placeholder="One serial per line..."></textarea>
+          <textarea name="serials" id="serials" class="form-control" rows="6" placeholder="One serial per line..." aria-label="Paste serials"></textarea>
         </div>
 
         <div class="mb-3">
           <label for="size" class="form-label">QR Code Size</label>
-          <select name="size" class="form-select">
+          <select name="size" id="size" class="form-select" aria-label="Select QR code size">
             <option value="small">Small</option>
             <option value="medium" selected>Medium</option>
             <option value="large">Large</option>
@@ -56,21 +56,21 @@
       </form>
     </div>
   </div>
-  
-  <!-- Instructions for uploading image-->
+
+  <!-- Image Upload Guidelines -->
   <div class="card mb-4 shadow-sm">
     <div class="card-header bg-warning text-dark">
-      <h5 class="mb-0">📋 Image Upload Guidelines</h5>
+      <h5 class="mb-0">🖼️ Image Upload Guidelines</h5>
     </div>
     <div class="card-body">
       <ul class="mb-0">
-        <li>Upload a valid <strong>image</strong> file with Datamatrix QR to be converted to text</li>
-	<li>Only <strong> *.png, *.jpg, *.jpeg and *.bmp files </strong> are supported</li>
-        <li>Only image — no plain text or binary content</li>
+        <li>Upload a valid <strong>image</strong> file containing a DataMatrix code</li>
+        <li>Supported formats: <strong>.png, .jpg, .jpeg, .bmp</strong></li>
+        <li>No plain text or binary files</li>
       </ul>
     </div>
   </div>
-  
+
   <!-- DataMatrix Decoding Form -->
   <div class="card shadow-sm">
     <div class="card-header bg-info text-white">
@@ -79,13 +79,30 @@
     <div class="card-body">
       <form method="POST" action="{{ url_for('main.decode_datamatrix') }}" enctype="multipart/form-data">
         <div class="mb-3">
-          <label for="file" class="form-label">Upload an image file</label>
-          <input type="file" class="form-control" id="file" name="file">
+          <label for="dmFile" class="form-label">Upload an image file</label>
+          <input type="file" class="form-control" id="dmFile" name="file" accept=".png,.jpg,.jpeg,.bmp" aria-label="Upload image file">
         </div>
         <button type="submit" class="btn btn-info w-100">🧠 Decode to Text</button>
       </form>
     </div>
   </div>
+
+  <!-- Optional: Decoded Output -->
+  {% if decoded_text %}
+    <div class="alert alert-success mt-4" role="alert">
+     <div class="d-flex justify-content-between align-items-center mb-2">
+      <h5 class="alert-heading mb-0">✅ Decoded Text</h5>
+       <button class="btn btn-sm btn-outline-secondary" onclick="copyDecodedText()">
+        📋 Copy
+       </button>
+     </div>
+      <pre id="decodedText" class="mb-0">{{ decoded_text }}</pre>
+    </div>
+  {% elif error %}
+    <div class="alert alert-danger mt-4" role="alert">
+  	<strong>Error:</strong> {{ error }}
+    </div>
+  {% endif %}
 
 </div>
 {% endblock %}

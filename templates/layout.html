@@ -56,6 +56,18 @@
 
   <!-- Bootstrap JS Bundle -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- Copy-to-clipboard -->
+  <script>
+  function copyDecodedText() {
+    const text = document.getElementById("decodedText").innerText;
+    navigator.clipboard.writeText(text).then(() => {
+      alert("Decoded text copied to clipboard!");
+    }).catch(err => {
+      console.error("Failed to copy text: ", err);
+    });
+  }
+  </script>
+
 </body>
 </html>
 
