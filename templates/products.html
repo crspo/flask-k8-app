@@ -1,14 +1,63 @@
 {% extends "layout.html" %}
-{% block title %}Home{% endblock %}
+{% block title %}Products{% endblock %}
 
 {% block content %}
-<div class="container">
-  <!-- Hero Section -->
-  <div class="p-5 mb-4 bg-light rounded-3">
-    <div class="container-fluid py-5">
-      <h1 class="display-5 fw-bold">Welcome to text to DM Converter</h1>
-      <p class="lead">Our products page is in transit, will be landing soon</p>
-    </div>
+<div class="container py-5">
+
+  <!-- Header -->
+  <div class="text-center mb-5">
+    <h1 class="display-4 fw-bold">🧰 Our Tools & Features</h1>
+    <p class="lead">Explore the modules that power your QR and DataMatrix workflows.</p>
   </div>
 
+  <!-- Product Cards -->
+  <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+
+    <!-- QR Generator -->
+    <div class="col">
+      <div class="card h-100 shadow-sm">
+        <div class="card-body">
+          <h5 class="card-title">🔳 QR Code Generator</h5>
+          <p class="card-text">Convert serials into high-quality QR codes with customizable sizing and PDF export.</p>
+          <a href="{{ url_for('main.index') }}" class="btn btn-outline-primary">Try It</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- DataMatrix Decoder -->
+    <div class="col">
+      <div class="card h-100 shadow-sm">
+        <div class="card-body">
+          <h5 class="card-title">🧠 DataMatrix Decoder</h5>
+          <p class="card-text">Upload images to extract embedded DataMatrix text using high-accuracy decoding.</p>
+          <a href="{{ url_for('main.index') }}#decode" class="btn btn-outline-info">Decode Now</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- API Access -->
+    <div class="col">
+      <div class="card h-100 shadow-sm">
+        <div class="card-body">
+          <h5 class="card-title">🔌 API Integration</h5>
+          <p class="card-text">Use our endpoints to generate QR codes or decode images programmatically.</p>
+          <a href="{{ url_for('main.api_docs') }}" class="btn btn-outline-dark">View API Docs</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Future Feature -->
+    <div class="col">
+      <div class="card h-100 shadow-sm border-dashed">
+        <div class="card-body">
+          <h5 class="card-title">🚀 Batch Processing (Coming Soon)</h5>
+          <p class="card-text">Upload multiple serials or images for bulk QR generation and decoding.</p>
+          <button class="btn btn-outline-secondary" disabled>Coming Soon</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
 {% endblock %}
+
