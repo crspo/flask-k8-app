@@ -7,7 +7,7 @@ on:
 
 jobs:
   build-and-deploy:
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
 
     steps:
     - name: Checkout code
@@ -42,7 +42,7 @@ jobs:
     
     # Delete existing deployment
     - name: Delete existing Deployment
-      run: kubectl delete deployment/flask-app --namespace default --kubeconfig ~/.kube/config --ignore-not-found
+      run: kubectl delete deployment/flask-app --namespace default --kubeconfig kubeconfig.yml --ignore-not-found
 
     # Deploy with Helm
     - name: Helm Upgrade & Install
@@ -55,4 +55,4 @@ jobs:
     
     #verify deployment
     - name: Verify Deployment
-      run: kubectl rollout status deployment/flask-app --namespace default --kubeconfig ~/.kube/config
+      run: kubectl rollout status deployment/flask-app --namespace default --kubeconfig kubeconfig.yml
