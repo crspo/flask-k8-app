@@ -33,26 +33,33 @@ jobs:
     # Create kubeconfig file from GitHub Secret
     - name: Write kubeconfig
       run: |
-        echo "${{ secrets.KUBECONFIG }}" > kubeconfig.yml
-        export KUBECONFIG=$(pwd)/kubeconfig.yaml
+        # Accept either a plain kubeconfig or a base64-encoded kubeconfig in the secret.
+        if echo "${{ secrets.KUBECONFIG }}" | base64 --decode > /dev/null 2>&1; then
+          echo "${{ secrets.KUBECONFIG }}" | base64 --decode > kubeconfig.yml
+        else
+          echo "${{ secrets.KUBECONFIG }}" > kubeconfig.yml
+        fi
+        export KUBECONFIG=$(pwd)/kubeconfig.yml
 
 
     # Optional: Confirm cluster connectivity
     - name: Validate cluster access
       run: |
-        export KUBECONFIG=$(pwd)/kubeconfig.yaml
+        export KUBECONFIG=$(pwd)/kubeconfig.yml
+        # Show the cluster API server endpoint (helps debug network reachability)
+        kubectl config view --kubeconfig kubeconfig.yml -o jsonpath="{.clusters[0].cluster.server}" || true
         kubectl cluster-info --kubeconfig kubeconfig.yml
 
     # Delete existing deployment
     - name: Delete existing Deployment
       run: |
-        export KUBECONFIG=$(pwd)/kubeconfig.yaml
+        export KUBECONFIG=$(pwd)/kubeconfig.yml
         kubectl delete deployment/flask-app --namespace default --kubeconfig kubeconfig.yml --ignore-not-found
 
     # Deploy with Helm
     - name: Helm Upgrade & Install
       run: |
-        export KUBECONFIG=$(pwd)/kubeconfig.yaml
+        export KUBECONFIG=$(pwd)/kubeconfig.yml
         helm upgrade --install flask-app ./helm/helm-chart \
           --namespace default \
           --values ./helm/helm-chart/values.yaml
@@ -60,5 +67,5 @@ jobs:
     #verify deployment
     - name: Verify Deployment
       run: |
-        export KUBECONFIG=$(pwd)/kubeconfig.yaml
+        export KUBECONFIG=$(pwd)/kubeconfig.yml
         kubectl rollout status deployment/flask-app --namespace default --kubeconfig kubeconfig.yml
