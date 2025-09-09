@@ -26,10 +26,12 @@ RUN python -m venv /venv \
 
 # --- Stage: Frontend build ---
 FROM node:18-bullseye AS node-builder
-WORKDIR /src
-COPY frontend/package.json frontend/package-lock.json* ./
-COPY frontend/ ./frontend/
+# Build inside /src/frontend so package.json, lockfile and source all live in the
+# same folder when npm runs. This avoids path-related failures during the
+# containerized build.
 WORKDIR /src/frontend
+COPY frontend/package.json frontend/package-lock.json* ./
+COPY frontend/ ./
 # Prefer reproducible install; fall back to npm install if npm ci fails
 RUN if [ -f package-lock.json ]; then npm ci --legacy-peer-deps; else npm install; fi
 RUN npm run build
