@@ -70,6 +70,7 @@ COPY . .
 
 COPY --from=node-builder /src/static ./static
 COPY frontend/public ./static/public
+COPY --from=node-builder /src/templates ./templates
 
 # Clean up __pycache__
 RUN rm -rf /venv/lib/python*/site-packages/__pycache__ \
