@@ -33,32 +33,29 @@ jobs:
     # Create kubeconfig file from GitHub Secret
     - name: Configure kubeconfig
       run: |
-        echo "${{ secrets.KUBECONFIG }}" > kubeconfig.yaml
-        export KUBE_CONFIG=$(pwd)/kubeconfig.yaml
-
-
-    # Optional: Confirm cluster connectivity
+        if [ -z "$KUBE_CONFIG" ]; then
+          echo "KUBE_CONFIG secret is not set. Please add it to your repository secrets."
+          exit 1
+        fi
+        echo "$KUBE_CONFIG" > ${{ github.workspace }}/kubeconfig.yaml
+        export KUBECONFIG=${{ github.workspace }}/kubeconfig.yaml
     - name: Validate cluster access
       run: |
-        export KUBE_CONFIG=$(pwd)/kubeconfig.yaml
         kubectl cluster-info
-
     # Delete existing deployment
     - name: Delete existing Deployment
       run: |
-        export KUBE_CONFIG=$(pwd)/kubeconfig.yaml
-        kubectl delete deployment/flask-app --namespace default --kubeconfig $KUBE_CONFIG --ignore-not-found
+        kubectl delete deployment/flask-app --namespace default --ignore-not-found
 
     # Deploy with Helm
     - name: Helm Upgrade & Install
       run: |
-        export KUBE_CONFIG=$(pwd)/kubeconfig.yaml
         helm upgrade --install flask-app ./helm/helm-chart \
           --namespace default \
           --values ./helm/helm-chart/values.yaml
     
     #verify deployment
+    #verify deployment
     - name: Verify Deployment
       run: |
-        export KUBE_CONFIG=$(pwd)/kubeconfig.yaml
-        kubectl rollout status deployment/flask-app --namespace default --kubeconfig $KUBE_CONFIG 
+        kubectl rollout status deployment/flask-app --namespace default
