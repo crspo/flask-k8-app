@@ -68,11 +68,7 @@ ENV PATH="/venv/bin:$PATH"
 # Copy app code
 COPY . .
 
-# Copy built frontend static files into Flask static directory. If the frontend
-# uses a `public/` folder, those files are copied into the build by Vite and
-# will appear in /src/frontend/dist. We also copy frontend/public as a
-# fallback for any raw assets.
-COPY --from=node-builder /src/frontend/dist ./static
+COPY --from=node-builder /src/static ./static
 COPY frontend/public ./static/public
 
 # Clean up __pycache__
