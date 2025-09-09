@@ -24,6 +24,15 @@ COPY requirements.txt .
 RUN python -m venv /venv \
     && /venv/bin/pip install --no-cache-dir -r requirements.txt
 
+# --- Stage: Frontend build ---
+FROM node:18-bullseye AS node-builder
+WORKDIR /src
+COPY frontend/package.json frontend/package-lock.json* ./
+COPY frontend/ ./frontend/
+WORKDIR /src/frontend
+RUN npm ci --legacy-peer-deps || npm install
+RUN npm run build
+
 # --- Stage 2: Runtime ---
 FROM python:3.12-slim
 
@@ -51,6 +60,9 @@ ENV PATH="/venv/bin:$PATH"
 
 # Copy app code
 COPY . .
+
+# Copy built frontend static files into Flask static directory
+COPY --from=node-builder /src/frontend/dist ./static
 
 # Clean up __pycache__
 RUN rm -rf /venv/lib/python*/site-packages/__pycache__ \
