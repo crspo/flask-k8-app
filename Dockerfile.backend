@@ -1,0 +1,62 @@
+# --- Builder: Python deps ---
+FROM python:3.12-slim AS builder
+
+WORKDIR /app
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Install system deps needed for wheels/native libs used by packages like cairosvg
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        libcairo2 \
+        libpango-1.0-0 \
+        libpangocairo-1.0-0 \
+        libgdk-pixbuf-xlib-2.0-0 \
+        shared-mime-info \
+        fonts-dejavu-core \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY requirements.txt .
+RUN python -m venv /venv \
+    && /venv/bin/pip install --no-cache-dir -r requirements.txt
+
+# --- Runtime: backend only (uses prebuilt frontend static files provided by CI) ---
+FROM python:3.12-slim
+
+WORKDIR /app
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        libcairo2 \
+        libpango-1.0-0 \
+        libpangocairo-1.0-0 \
+        libgdk-pixbuf-xlib-2.0-0 \
+        shared-mime-info \
+        libfontconfig1 \
+        fonts-dejavu-core \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy virtualenv from builder
+COPY --from=builder /venv /venv
+ENV PATH="/venv/bin:$PATH"
+
+# Copy application code
+COPY . .
+
+# The frontend `static/` directory will be produced by the separate frontend
+# build job and downloaded into the repo by the workflow. Copy it into the
+# runtime image so Flask can serve the built assets.
+COPY static ./static
+COPY frontend/public ./static/public
+
+# Copy generated templates (if produced by the frontend build step)
+COPY templates ./templates
+
+# Cleanup bytecode
+RUN rm -rf /venv/lib/python*/site-packages/__pycache__ \
+    && find . -type d -name '__pycache__' -exec rm -r {} +
+
+EXPOSE 5000
+CMD ["python", "app.py"]
