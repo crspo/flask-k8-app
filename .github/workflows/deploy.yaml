@@ -30,15 +30,36 @@ jobs:
       with:
         version: v3.13.1  # or latest stable
 
-    # Create kubeconfig file from GitHub Secret
+    # Create kubeconfig file from GitHub Secret (accepts raw or base64, supports two secret names)
     - name: Configure kubeconfig
+      env:
+        K8S_PRIMARY: ${{ secrets.KUBECONFIG }}
+        K8S_FALLBACK: ""
       run: |
-        if [ -z "$KUBE_CONFIG" ]; then
-          echo "KUBE_CONFIG secret is not set. Please add it to your repository secrets."
+        # prefer K8S_PRIMARY secret, fall back to K8S_FALLBACK
+        if [ -n "$K8S_PRIMARY" ]; then
+          VAL="$K8S_PRIMARY"
+        elif [ -n "$K8S_FALLBACK" ]; then
+          VAL="$K8S_FALLBACK"
+        else
+          echo "Neither KUBECONFIG nor KUBE_CONFIG secret is set. Please add one to your repository secrets."
           exit 1
         fi
-        echo "$KUBE_CONFIG" > ${{ github.workspace }}/kubeconfig.yaml
-        export KUBECONFIG=${{ github.workspace }}/kubeconfig.yaml
+
+        OUT_FILE="${{ github.workspace }}/kubeconfig.yaml"
+
+        # Detect base64: try to decode; if decode works, use it, otherwise write raw value
+        if echo "$VAL" | base64 --decode >/dev/null 2>&1; then
+          echo "$VAL" | base64 --decode > "$OUT_FILE"
+        else
+          echo "$VAL" > "$OUT_FILE"
+        fi
+
+        chmod 600 "$OUT_FILE"
+        export KUBECONFIG="$OUT_FILE"
+        echo "Wrote kubeconfig to $OUT_FILE"
+        # print the API server endpoint for debugging (non-secret)
+        kubectl --kubeconfig="$OUT_FILE" config view -o jsonpath='{.clusters[0].cluster.server}' || true
     - name: Validate cluster access
       run: |
         kubectl cluster-info
