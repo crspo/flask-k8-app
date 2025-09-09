@@ -13,7 +13,7 @@ RUN apt-get update \
         libcairo2 \
         libpango-1.0-0 \
         libpangocairo-1.0-0 \
-    libgdk-pixbuf-xlib-2.0-0 \
+        libgdk-pixbuf-xlib-2.0-0 \
         shared-mime-info \
         fonts-dejavu-core \
     && apt-get clean \
@@ -30,7 +30,8 @@ WORKDIR /src
 COPY frontend/package.json frontend/package-lock.json* ./
 COPY frontend/ ./frontend/
 WORKDIR /src/frontend
-RUN npm ci --legacy-peer-deps || npm install
+# Prefer reproducible install; fall back to npm install if npm ci fails
+RUN if [ -f package-lock.json ]; then npm ci --legacy-peer-deps; else npm install; fi
 RUN npm run build
 
 # --- Stage 2: Runtime ---
@@ -61,8 +62,12 @@ ENV PATH="/venv/bin:$PATH"
 # Copy app code
 COPY . .
 
-# Copy built frontend static files into Flask static directory
+# Copy built frontend static files into Flask static directory. If the frontend
+# uses a `public/` folder, those files are copied into the build by Vite and
+# will appear in /src/frontend/dist. We also copy frontend/public as a
+# fallback for any raw assets.
 COPY --from=node-builder /src/frontend/dist ./static
+COPY frontend/public ./static/public
 
 # Clean up __pycache__
 RUN rm -rf /venv/lib/python*/site-packages/__pycache__ \

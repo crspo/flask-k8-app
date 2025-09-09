@@ -1,14 +1,15 @@
-"""
-Entry point for the QR code generator Flask application.
+"""Entry point for the QR code generator Flask application.
 
-Registers Blueprints for route handling and runs the server in debug mode.
+This module now uses a small application factory located in `backend`.
+It keeps the simple `python app.py` entrypoint for local development while
+making it easy to import `create_app` for testing or WSGI hosting.
 """
-from flask import Flask
-from routes.main import bp as main_bp
+from backend import create_app
 
-app = Flask(__name__)
-app.register_blueprint(main_bp)
+# Create the Flask app for the default run
+app = create_app()
 
 if __name__ == "__main__":
+    # Dev mode
     app.run(debug=True, host='0.0.0.0')
 

@@ -1,82 +1,94 @@
 name: Build and Deploy Flask App
 
 on:
-  push:
-    branches: [ "add-workflow-dispatch" ]
-  workflow_dispatch:
+  name: Build and Deploy Flask App
 
-jobs:
-  build-and-deploy:
-    runs-on: [self-hosted]
+  on:
+    push:
+      branches: [ "add-workflow-dispatch" ]
+    workflow_dispatch:
 
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
+  jobs:
+    build-and-deploy:
+      # Use self-hosted by default because the cluster is on a private network.
+      # Change to `ubuntu-latest` in the matrix to use GitHub-hosted runners.
+      runs-on: ${{ matrix.runner }}
+      strategy:
+        matrix:
+          runner: [self-hosted]
 
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v2
+      steps:
+        - name: Checkout code
+          uses: actions/checkout@v3
 
-    - name: Log in to Docker Hub
-      run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+        - name: Set up Docker Buildx
+          uses: docker/setup-buildx-action@v2
 
-    - name: Build and push Docker image
-      run: |
-        docker build -t ${{ secrets.DOCKER_USERNAME }}/flask-k8-app:latest .
-        docker push ${{ secrets.DOCKER_USERNAME }}/flask-k8-app:latest
+        - name: Log in to Docker Hub
+          uses: docker/login-action@v2
+          with:
+            username: ${{ secrets.DOCKER_USERNAME }}
+            password: ${{ secrets.DOCKER_PASSWORD }}
 
- # Set up Helm CLI
-    - name: Install Helm
-      uses: azure/setup-helm@v3
-      with:
-        version: v3.13.1  # or latest stable
+        - name: Build and push Docker image
+          uses: docker/build-push-action@v4
+          with:
+            context: .
+            push: true
+            tags: ${{ secrets.DOCKER_USERNAME }}/flask-k8-app:latest
+            cache-from: type=gha
+            cache-to: type=gha,mode=max
 
-    # Create kubeconfig file from GitHub Secret (accepts raw or base64, supports two secret names)
-    - name: Configure kubeconfig
-      env:
-        K8S_PRIMARY: ${{ secrets.KUBECONFIG }}
-        K8S_FALLBACK: ""
-      run: |
-        # prefer K8S_PRIMARY secret, fall back to K8S_FALLBACK
-        if [ -n "$K8S_PRIMARY" ]; then
-          VAL="$K8S_PRIMARY"
-        elif [ -n "$K8S_FALLBACK" ]; then
-          VAL="$K8S_FALLBACK"
-        else
-          echo "Neither KUBECONFIG nor KUBE_CONFIG secret is set. Please add one to your repository secrets."
-          exit 1
-        fi
+        - name: Install Helm
+          uses: azure/setup-helm@v3
+          with:
+            version: v3.13.1
 
-        OUT_FILE="${{ github.workspace }}/kubeconfig.yaml"
+        - name: Configure kubeconfig
+          env:
+            K8S_PRIMARY: ${{ secrets.KUBECONFIG }}
+            K8S_FALLBACK: ""
+          run: |
+            # prefer K8S_PRIMARY secret, fall back to K8S_FALLBACK
+            if [ -n "$K8S_PRIMARY" ]; then
+              VAL="$K8S_PRIMARY"
+            elif [ -n "$K8S_FALLBACK" ]; then
+              VAL="$K8S_FALLBACK"
+            else
+              echo "Neither KUBECONFIG nor KUBE_CONFIG secret is set. Please add one to your repository secrets."
+              exit 1
+            fi
 
-        # Detect base64: try to decode; if decode works, use it, otherwise write raw value
-        if echo "$VAL" | base64 --decode >/dev/null 2>&1; then
-          echo "$VAL" | base64 --decode > "$OUT_FILE"
-        else
-          echo "$VAL" > "$OUT_FILE"
-        fi
+            OUT_FILE="${{ github.workspace }}/kubeconfig.yaml"
 
-        chmod 600 "$OUT_FILE"
-        export KUBECONFIG="$OUT_FILE"
-        echo "Wrote kubeconfig to $OUT_FILE"
-        # print the API server endpoint for debugging (non-secret)
-        kubectl --kubeconfig="$OUT_FILE" config view -o jsonpath='{.clusters[0].cluster.server}' || true
-    - name: Validate cluster access
-      run: |
-        kubectl cluster-info
-    # Delete existing deployment
-    - name: Delete existing Deployment
-      run: |
-        kubectl delete deployment/flask-app --namespace default --ignore-not-found
+            # Detect base64: try to decode; if decode works, use it, otherwise write raw value
+            if echo "$VAL" | base64 --decode >/dev/null 2>&1; then
+              echo "$VAL" | base64 --decode > "$OUT_FILE"
+            else
+              echo "$VAL" > "$OUT_FILE"
+            fi
 
-    # Deploy with Helm
-    - name: Helm Upgrade & Install
-      run: |
-        helm upgrade --install flask-app ./helm/helm-chart \
-          --namespace default \
-          --values ./helm/helm-chart/values.yaml
-    
-    #verify deployment
-    #verify deployment
-    - name: Verify Deployment
+            chmod 600 "$OUT_FILE"
+            echo "Wrote kubeconfig to $OUT_FILE"
+            # print the API server endpoint for debugging (non-secret)
+            kubectl --kubeconfig="$OUT_FILE" config view -o jsonpath='{.clusters[0].cluster.server}' || true
+
+        - name: Validate cluster access
+          run: |
+            kubectl cluster-info || true
+
+        - name: Delete existing Deployment
+          run: |
+            kubectl delete deployment/flask-app --namespace default --ignore-not-found || true
+
+        - name: Helm Upgrade & Install
+          run: |
+            helm upgrade --install flask-app ./helm/helm-chart \
+              --namespace default \
+              --values ./helm/helm-chart/values.yaml
+
+        - name: Verify Deployment
+          run: |
+            kubectl rollout status deployment/flask-app --namespace default
       run: |
         kubectl rollout status deployment/flask-app --namespace default
