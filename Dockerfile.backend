@@ -48,11 +48,11 @@ COPY . .
 # The frontend `static/` directory will be produced by the separate frontend
 # build job and downloaded into the repo by the workflow. Copy it into the
 # runtime image so Flask can serve the built assets.
-COPY static ./static
-COPY frontend/public ./static/public
+COPY backend/static ./backend/static
+COPY frontend/public ./backend/static/public
 
 # Copy generated templates (if produced by the frontend build step)
-COPY templates ./templates
+COPY backend/templates ./backend/templates
 
 # Cleanup bytecode
 RUN rm -rf /venv/lib/python*/site-packages/__pycache__ \

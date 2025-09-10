@@ -68,9 +68,9 @@ ENV PATH="/venv/bin:$PATH"
 # Copy app code
 COPY . .
 
-COPY --from=node-builder /src/static ./static
-COPY frontend/public ./static/public
-COPY --from=node-builder /src/templates ./templates
+COPY --from=node-builder /src/static ./backend/static
+COPY frontend/public ./backend/static/public
+COPY --from=node-builder /src/templates ./backend/templates
 
 # Clean up __pycache__
 RUN rm -rf /venv/lib/python*/site-packages/__pycache__ \
