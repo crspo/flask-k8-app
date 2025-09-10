@@ -19,6 +19,14 @@ def serve_static(filename):
     return send_from_directory(root / 'static', filename)
 
 
+@bp.route('/assets/<path:filename>')
+def serve_assets(filename):
+    # Vite builds often reference /assets/<file>; ensure those requests are served
+    root = Path(__file__).resolve().parents[1]
+    assets_dir = root / 'static' / 'assets'
+    return send_from_directory(assets_dir, filename)
+
+
 @bp.route('/sw.js')
 def service_worker():
     # Allow disabling the service worker at runtime for debugging cached/blank pages.
