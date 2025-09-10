@@ -31,9 +31,9 @@ RUN apt-get update \
 
 # Install pip dependencies into virtual environment
 COPY requirements.txt .
-RUN python -m venv /venv \
-    && /venv/bin/python -m pip install --upgrade pip setuptools wheel \
-    && /venv/bin/pip install --no-cache-dir -r requirements.txt
+# Build wheels in builder stage so the runtime image can install from them
+RUN python -m pip install --upgrade pip setuptools wheel \
+    && python -m pip wheel --wheel-dir /wheels -r requirements.txt
 
 # --- Stage: Frontend build ---
 FROM node:18-bullseye AS node-builder
@@ -72,8 +72,12 @@ RUN apt-get update \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy virtual environment from builder
-COPY --from=builder /venv /venv
+# Copy built wheels from the builder and install into a fresh venv at runtime
+COPY --from=builder /wheels /wheels
+RUN python -m venv /venv \
+    && /venv/bin/python -m pip install --upgrade pip setuptools wheel \
+    && /venv/bin/pip install --no-index --find-links /wheels -r requirements.txt \
+    && rm -rf /wheels
 ENV PATH="/venv/bin:$PATH"
 
 # Copy only runtime application files to keep the image small
