@@ -1,5 +1,6 @@
 # --- Builder: Python deps ---
-FROM python:3.13-slim AS builder
+ARG BUILDER_BASE=python:3.13-slim
+FROM ${BUILDER_BASE} AS builder
 
 WORKDIR /app
 ENV DEBIAN_FRONTEND=noninteractive

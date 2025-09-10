@@ -1,5 +1,6 @@
 # --- Stage 1: Builder ---
-FROM python:3.13-slim AS builder
+ARG BUILDER_BASE=python:3.13-slim
+FROM ${BUILDER_BASE} AS builder
 
 # Set work directory
 WORKDIR /app
