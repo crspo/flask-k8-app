@@ -27,7 +27,15 @@ def service_worker():
 @bp.route('/favicon.ico')
 def favicon():
     root = Path(__file__).resolve().parents[1]
-    return send_from_directory(root / 'static', 'favicon.ico')
+    ico = root / 'static' / 'favicon.ico'
+    if ico.exists():
+        return send_from_directory(root / 'static', 'favicon.ico')
+    # Fallback: use the main logo if a proper favicon.ico is not present
+    logo = root / 'static' / 'text-to-dm-logo.png'
+    if logo.exists():
+        return send_from_directory(root / 'static', 'text-to-dm-logo.png')
+    # Last resort: return 204 No Content
+    return ('', 204)
 
 
 @bp.route('/api/upload', methods=['POST'])
