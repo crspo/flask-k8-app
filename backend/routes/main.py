@@ -169,3 +169,16 @@ def client_error():
     # Log the error for developers to inspect (visible in pod logs)
     bp.logger.error('Client error: %s\nUser-Agent: %s\nStack:\n%s', message, ua, stack)
     return ('', 204)
+
+
+@bp.route('/_debug/routes')
+def debug_routes():
+    """Return a JSON list of registered routes for debugging."""
+    try:
+        from flask import current_app
+        rules = []
+        for rule in sorted(current_app.url_map.iter_rules(), key=lambda r: r.rule):
+            rules.append({'rule': rule.rule, 'endpoint': rule.endpoint, 'methods': sorted(list(rule.methods))})
+        return jsonify({'routes': rules})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
