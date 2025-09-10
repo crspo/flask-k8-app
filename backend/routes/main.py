@@ -131,3 +131,33 @@ def debug_status():
         'assets': {a.name: info(a) for a in assets},
         'index_preview': preview
     })
+
+
+@bp.route('/_debug/bundle')
+def debug_bundle():
+    """Return a truncated preview of the main JS bundle to help diagnose runtime errors."""
+    root = Path(__file__).resolve().parents[1]
+    bundle = root / 'static' / 'assets' / 'index-BPrHFD5V.js'
+    if not bundle.exists():
+        return jsonify({'error': 'bundle not found'}), 404
+    try:
+        with open(bundle, 'r', encoding='utf-8') as f:
+            content = f.read(4000)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+    return Response(content, mimetype='text/javascript')
+
+
+@bp.route('/client-error', methods=['POST'])
+def client_error():
+    """Accept client-side error reports (console logs) and write to server logs.
+
+    Expected JSON: { 'message': string, 'stack': string, 'userAgent': string }
+    """
+    data = request.get_json(silent=True) or {}
+    message = data.get('message') or '<no message>'
+    stack = data.get('stack') or ''
+    ua = data.get('userAgent') or request.headers.get('User-Agent')
+    # Log the error for developers to inspect (visible in pod logs)
+    bp.logger.error('Client error: %s\nUser-Agent: %s\nStack:\n%s', message, ua, stack)
+    return ('', 204)
