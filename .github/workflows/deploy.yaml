@@ -35,6 +35,20 @@ jobs:
         working-directory: ./frontend
         run: npm run build
 
+      - name: Prepare static artifact
+        working-directory: ./frontend
+        run: |
+          echo "Copying built frontend files from backend/static to ./static for artifact upload"
+          # Ensure a ./static folder exists at repo root then copy build output there
+          rm -rf ./static || true
+          mkdir -p ./static
+          # backend/static is the Vite outDir in this repo; copy its contents into artifact path
+          if [ -d ../backend/static ]; then
+            cp -a ../backend/static/. ./static/
+          else
+            echo "Warning: ../backend/static not found — make sure Vite outDir is correct"
+          fi
+
       - name: Upload static artifact
         id: upload
         uses: actions/upload-artifact@v4
