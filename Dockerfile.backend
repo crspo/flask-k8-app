@@ -1,5 +1,5 @@
 # --- Builder: Python deps ---
-FROM python:3.12-slim AS builder
+FROM python:3.13-slim AS builder
 
 WORKDIR /app
 ENV DEBIAN_FRONTEND=noninteractive
@@ -7,6 +7,16 @@ ENV DEBIAN_FRONTEND=noninteractive
 # Install system deps needed for wheels/native libs used by packages like cairosvg
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
+        build-essential \
+        gcc \
+        make \
+        pkg-config \
+        libffi-dev \
+        libssl-dev \
+        libxml2-dev \
+        libxslt1-dev \
+        libjpeg-dev \
+        zlib1g-dev \
         libcairo2 \
         libpango-1.0-0 \
         libpangocairo-1.0-0 \
@@ -18,10 +28,17 @@ RUN apt-get update \
 
 COPY requirements.txt .
 RUN python -m venv /venv \
-    && /venv/bin/pip install --no-cache-dir -r requirements.txt
+    && /venv/bin/python -m pip install --upgrade pip setuptools wheel \
+    && /venv/bin/pip install --no-cache-dir -v Flask==3.0.0 \
+    && /venv/bin/pip install --no-cache-dir -v ppf.datamatrix==0.2 \
+    && /venv/bin/pip install --no-cache-dir -v cairosvg==2.8.2 \
+    && /venv/bin/pip install --no-cache-dir -v "Pillow>=11.3.0" \
+    && /venv/bin/pip install --no-cache-dir -v reportlab==4.0.7 \
+    && /venv/bin/pip install --no-cache-dir -v "gunicorn>=20.1.0" \
+    && /venv/bin/pip install --no-cache-dir -v "waitress>=2.2.0"
 
 # --- Runtime: backend only (uses prebuilt frontend static files provided by CI) ---
-FROM python:3.12-slim
+FROM python:3.13-slim
 
 WORKDIR /app
 ENV DEBIAN_FRONTEND=noninteractive
@@ -43,12 +60,16 @@ COPY --from=builder /venv /venv
 ENV PATH="/venv/bin:$PATH"
 
 # Copy application code
+
+# Copy application code
 COPY . .
 
 # The frontend `static/` directory will be produced by the separate frontend
-# build job and downloaded into the repo by the workflow. Copy it into the
-# runtime image so Flask can serve the built assets.
+# build job and downloaded into the repo by the workflow. Ensure it is present
+# at `backend/static` in the repo; copy into the image so Flask can serve the
+# built assets.
 COPY backend/static ./backend/static
+# Public assets from frontend (if any) can be mirrored into backend/static
 COPY frontend/public ./backend/static/public
 
 # Copy generated templates (if produced by the frontend build step)
@@ -58,5 +79,8 @@ COPY backend/templates ./backend/templates
 RUN rm -rf /venv/lib/python*/site-packages/__pycache__ \
     && find . -type d -name '__pycache__' -exec rm -r {} +
 
+ENV FLASK_ENV=production
+ENV FLASK_DEBUG=0
 EXPOSE 5000
-CMD ["python", "app.py"]
+# Run with gunicorn for production-grade WSGI serving
+CMD ["gunicorn", "-w", "4", "-b", "0.0.0.0:5000", "wsgi:app"]

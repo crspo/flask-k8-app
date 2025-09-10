@@ -5,6 +5,4 @@ self.addEventListener('install', (event) => {
 self.addEventListener('activate', (event) => {
   event.waitUntil(self.clients.claim());
 });
-self.addEventListener('fetch', (event) => {
-  // noop - serve network by default
-});
+// No fetch handler — let the browser use network by default and avoid no-op handler warnings.

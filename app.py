@@ -5,11 +5,13 @@ It keeps the simple `python app.py` entrypoint for local development while
 making it easy to import `create_app` for testing or WSGI hosting.
 """
 from backend import create_app
+import os
 
 # Create the Flask app for the default run
 app = create_app()
 
 if __name__ == "__main__":
-    # Dev mode
-    app.run(debug=True, host='0.0.0.0')
+    # Support running locally via `python app.py` — debug controlled by env var
+    debug = os.environ.get("FLASK_DEBUG", "0") in ("1", "true", "True")
+    app.run(debug=debug, host="0.0.0.0")
 

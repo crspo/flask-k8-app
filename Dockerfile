@@ -1,5 +1,5 @@
 # --- Stage 1: Builder ---
-FROM python:3.12-slim AS builder
+FROM python:3.13-slim AS builder
 
 # Set work directory
 WORKDIR /app
@@ -7,9 +7,19 @@ WORKDIR /app
 # Avoid interactive prompts during package installation
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Install CairoSVG system dependencies
+# Install build tools and CairoSVG system dependencies so wheels (Pillow, cairosvg) can be built
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
+        build-essential \
+        gcc \
+        make \
+        pkg-config \
+        libffi-dev \
+        libssl-dev \
+        libxml2-dev \
+        libxslt1-dev \
+        libjpeg-dev \
+        zlib1g-dev \
         libcairo2 \
         libpango-1.0-0 \
         libpangocairo-1.0-0 \
@@ -22,6 +32,7 @@ RUN apt-get update \
 # Install pip dependencies into virtual environment
 COPY requirements.txt .
 RUN python -m venv /venv \
+    && /venv/bin/python -m pip install --upgrade pip setuptools wheel \
     && /venv/bin/pip install --no-cache-dir -r requirements.txt
 
 # --- Stage: Frontend build ---
@@ -41,7 +52,7 @@ RUN if [ -f package-lock.json ]; then npm ci --legacy-peer-deps; else npm instal
 RUN npm run build
 
 # --- Stage 2: Runtime ---
-FROM python:3.12-slim
+FROM python:3.13-slim
 
 # Set work directory
 WORKDIR /app
@@ -76,6 +87,9 @@ COPY --from=node-builder /src/templates ./backend/templates
 RUN rm -rf /venv/lib/python*/site-packages/__pycache__ \
     && find . -type d -name '__pycache__' -exec rm -r {} +
 
+ENV FLASK_ENV=production
+ENV FLASK_DEBUG=0
 EXPOSE 5000
-CMD ["python", "app.py"]
+# Use gunicorn in the runtime image for production WSGI serving
+CMD ["gunicorn", "-w", "4", "-b", "0.0.0.0:5000", "wsgi:app"]
 

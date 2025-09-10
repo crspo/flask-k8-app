@@ -5,6 +5,15 @@ app:
 image:
   repository: chandansyd05/flask-k8-app
   tag: latest
+  pullPolicy: IfNotPresent
+  # Optionally specify imagePullSecrets when pulling from private registries
+  pullSecrets: []
+
+replicaCount: 1
+
+resources:
+  limits: {}
+  requests: {}
 
 service:
   type: ClusterIP
@@ -25,4 +34,20 @@ rbac:
 
 networkPolicy:
   enabled: true
+
+readinessProbe:
+  httpGet:
+    path: /
+    port: 5000
+  initialDelaySeconds: 5
+  periodSeconds: 10
+  failureThreshold: 3
+
+livenessProbe:
+  httpGet:
+    path: /
+    port: 5000
+  initialDelaySeconds: 15
+  periodSeconds: 20
+  failureThreshold: 5
 

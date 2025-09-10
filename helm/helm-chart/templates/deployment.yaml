@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: {{ .Release.Name }}
 spec:
-  replicas: 1
+  replicas: {{ .Values.replicaCount | default 1 }}
   selector:
     matchLabels:
       app: {{ .Release.Name }}
@@ -15,6 +15,16 @@ spec:
       containers:
       - name: qr-code-app
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy | default "IfNotPresent" }}
         ports:
         - containerPort: {{ .Values.app.containerPort }}
+        resources: {{- toYaml .Values.resources | nindent 8 }}
+        readinessProbe: {{- toYaml .Values.readinessProbe | nindent 8 }}
+        livenessProbe: {{- toYaml .Values.livenessProbe | nindent 8 }}
+      {{- if .Values.image.pullSecrets }}
+      imagePullSecrets:
+      {{- range .Values.image.pullSecrets }}
+      - name: {{ . }}
+      {{- end }}
+      {{- end }}
 

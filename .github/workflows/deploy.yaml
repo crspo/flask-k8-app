@@ -79,6 +79,18 @@ jobs:
           echo "Find any static directories:"; find . -maxdepth 3 -type d -name static -print || true
           echo "Contents of ./static (if present):"; ls -la ./static || true
 
+      - name: Move frontend static into backend/static
+        run: |
+          if [ -d ./static ]; then
+            echo "Creating backend/static and moving built frontend files into it"
+            mkdir -p backend/static
+            # Move all files from artifact static into backend/static
+            cp -a ./static/. backend/static/ || true
+            echo "backend/static now contains:"; ls -la backend/static || true
+          else
+            echo "No ./static directory found in workspace; ensure frontend build produced ./static"
+          fi
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
@@ -143,3 +155,27 @@ jobs:
 
       - name: Verify Deployment
         run: kubectl rollout status deployment/flask-app --namespace default
+
+      - name: Run smoke tests (port-forward + curl)
+        run: |
+          set -e
+          KUBECONFIG_PATH="${{ github.workspace }}/kubeconfig.yaml"
+          echo "Using kubeconfig: $KUBECONFIG_PATH"
+          # Port-forward the deployment to localhost
+          kubectl --kubeconfig="$KUBECONFIG_PATH" port-forward deployment/flask-app 8080:5000 >/tmp/port-forward.log 2>&1 &
+          PF=$!
+          # Give port-forward a moment to start
+          sleep 4
+          echo "Checking GET /"
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:8080/ || true)
+          echo "GET / returned HTTP $STATUS"
+          if [ "$STATUS" != "200" ] && [ "$STATUS" != "304" ]; then
+            echo "GET / failed; dumping port-forward logs:"; cat /tmp/port-forward.log; kill $PF; exit 1
+          fi
+
+          echo "Checking POST /api/upload"
+          RESP=$(curl -s -X POST -F "serials=TEST1\nTEST2" http://127.0.0.1:8080/api/upload || true)
+          echo "Response: $RESP"
+          echo "$RESP" | grep -q 'img_base64' || (echo "Smoke test failed: img_base64 not found"; cat /tmp/port-forward.log; kill $PF; exit 1)
+          # Clean up port-forward
+          kill $PF || true

@@ -1,7 +1,7 @@
 Flask==3.0.0
 ppf.datamatrix==0.2
 cairosvg==2.8.2
-Pillow==10.3.0
+Pillow>=11.3.0
 reportlab==4.0.7
 gunicorn>=20.1.0
 waitress>=2.2.0
