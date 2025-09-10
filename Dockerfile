@@ -76,8 +76,9 @@ RUN apt-get update \
 COPY --from=builder /venv /venv
 ENV PATH="/venv/bin:$PATH"
 
-# Copy app code
-COPY . .
+# Copy only runtime application files to keep the image small
+COPY backend /app/backend
+COPY wsgi.py /app/wsgi.py
 
 COPY --from=node-builder /src/static ./backend/static
 COPY frontend/public ./backend/static/public

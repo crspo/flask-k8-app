@@ -1,11 +1,51 @@
+
+# Python
 __pycache__/
-*.pyc
-*.bak
-.env
-*.log
-*.db
-*.sqlite3
+*.py[cod]
+*$py.class
+.Python
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+pip-wheel-metadata/
+
+# Node
+node_modules/
+**/node_modules/
+frontend/node_modules/
+
+# Vite / frontend build outputs
+frontend/dist/
+frontend/.vite/
+
+# Static build outputs (optional - untrack with git rm --cached if you want these ignored)
+backend/static/
+static/
+
+# Editor / OS
 .vscode/
 .idea/
-.venv/
+.DS_Store
+Thumbs.db
+
+# Logs, env
+*.log
+.env
+.env.*
+
+# Test / cache
+.pytest_cache/
+.mypy_cache/
+
+# Misc
+*.bak
+*.swp
 

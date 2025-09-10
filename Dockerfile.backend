@@ -59,10 +59,12 @@ RUN apt-get update \
 COPY --from=builder /venv /venv
 ENV PATH="/venv/bin:$PATH"
 
-# Copy application code
-
-# Copy application code
-COPY . .
+# Copy only the runtime application files we need to keep the image small.
+# We rely on the prebuilt virtualenv copied from the builder stage, so we only
+# need the backend package, wsgi entrypoint, built static assets and templates.
+# This avoids sending the entire repo (node_modules, .git, etc.) into the image.
+COPY backend /app/backend
+COPY wsgi.py /app/wsgi.py
 
 # The frontend `static/` directory will be produced by the separate frontend
 # build job and downloaded into the repo by the workflow. Ensure it is present

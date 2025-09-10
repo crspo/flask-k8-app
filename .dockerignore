@@ -1,13 +1,13 @@
-# Ignore node modules and build outputs to keep Docker build context small
+# Node
 node_modules
 **/node_modules
 frontend/node_modules
 
-# Ignore frontend build caches
+# Frontend build caches / dev artifacts
 frontend/dist
 frontend/.vite
 
-# Python artifacts
+# Python artifacts / virtualenvs
 __pycache__
 *.pyc
 *.pyo
@@ -15,19 +15,23 @@ __pycache__
 venv
 .venv
 
-# Editor/OS files
+# Editor / OS
 .vscode
 .idea
 .DS_Store
+Thumbs.db
 
 # Git and CI
 .git
 .github
 
-# Logs and environment
+# Logs and env
 *.log
 .env
 .env.local
 
-# Optional: ignore local Docker files that shouldn't be baked into the image
+# Local docker compose files
 docker-compose.*
+
+# Keep built backend static in build context so it can be copied into the runtime image
+!backend/static
