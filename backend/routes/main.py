@@ -1,5 +1,6 @@
 from flask import Blueprint, request, Response, jsonify, send_file, send_from_directory
 import base64
+import os
 from pathlib import Path
 
 bp = Blueprint('main', __name__)
@@ -20,8 +21,16 @@ def serve_static(filename):
 
 @bp.route('/sw.js')
 def service_worker():
+    # Allow disabling the service worker at runtime for debugging cached/blank pages.
+    # Set environment variable DISABLE_SW=1 to make this endpoint return 204 No Content.
+    if os.environ.get('DISABLE_SW', '0') == '1':
+        return ('', 204)
+
     root = Path(__file__).resolve().parents[1]
-    return send_from_directory(root / 'static', 'sw.js')
+    sw_path = root / 'static' / 'sw.js'
+    if sw_path.exists():
+        return send_from_directory(root / 'static', 'sw.js')
+    return ('', 204)
 
 
 @bp.route('/favicon.ico')
@@ -81,4 +90,44 @@ def upload_and_export():
     return jsonify({
         'img_base64': img_base64,
         'pdf_b64': pdf_b64,
+    })
+
+
+@bp.route('/_debug/status')
+def debug_status():
+    """Return quick diagnostics about the served static files.
+
+    This endpoint is intentionally minimal and only used for local debugging
+    or CI smoke-tests. It returns whether the SPA entrypoint and key assets
+    exist and a small preview of `index.html` so you can confirm what the
+    backend is actually serving.
+    """
+    root = Path(__file__).resolve().parents[1]
+    static_dir = root / 'static'
+
+    def info(p: Path):
+        return {
+            'exists': p.exists(),
+            'size': p.stat().st_size if p.exists() else 0
+        }
+
+    index_file = static_dir / 'index.html'
+    assets = [
+        static_dir / 'assets' / 'index-BPrHFD5V.js',
+        static_dir / 'assets' / 'index-Cos4r8-z.css',
+        static_dir / 'sw.js'
+    ]
+
+    preview = ''
+    if index_file.exists():
+        try:
+            with open(index_file, 'r', encoding='utf-8') as f:
+                preview = f.read(1200)
+        except Exception:
+            preview = ''
+
+    return jsonify({
+        'index': info(index_file),
+        'assets': {a.name: info(a) for a in assets},
+        'index_preview': preview
     })
