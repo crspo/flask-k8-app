@@ -72,6 +72,7 @@ RUN apt-get update \
 
 # Copy built wheels from the builder and install into a fresh venv at runtime
 COPY --from=builder /wheels /wheels
+COPY --from=builder /app/requirements.txt ./requirements.txt
 RUN python -m venv /venv \
     && /venv/bin/python -m pip install --upgrade pip setuptools wheel \
     && /venv/bin/pip install --no-index --find-links /wheels -r requirements.txt \
