@@ -8,7 +8,7 @@ on:
 jobs:
   build-frontend:
     name: Build Frontend
-    runs-on: [self-hosted, ubuntu-latest]
+    runs-on: [self-hosted]
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -44,7 +44,7 @@ jobs:
 
   build-and-deploy:
     name: Build & Deploy Backend
-    runs-on: self-hosted
+    runs-on: [self-hosted]
     needs: build-frontend
 
     steps:
