@@ -1,0 +1,55 @@
+name: Build Frontend (manual)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-frontend-only:
+    name: Build Frontend
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Use Node 18
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Cache node modules
+        uses: actions/cache@v4
+        with:
+          path: frontend/node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      - name: Install frontend deps
+        working-directory: ./frontend
+        run: |
+          if [ -f package-lock.json ]; then npm ci --legacy-peer-deps; else npm install; fi
+
+      - name: Build frontend
+        working-directory: ./frontend
+        run: npm run build
+
+      - name: Prepare static artifact
+        working-directory: ./frontend
+        run: |
+          rm -rf ./static || true
+          mkdir -p ./static
+          if [ -d ../backend/static ]; then
+            cp -a ../backend/static/. ./static/ || true
+          else
+            echo "Warning: ../backend/static not found — make sure Vite outDir is correct"
+          fi
+
+      - name: Upload static artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-static
+          path: ./static
+
+      - name: List artifact contents (debug)
+        run: |
+          echo "Artifact static directory contents:"; ls -la ./static || true
