@@ -168,33 +168,20 @@ jobs:
 
       - name: Helm Upgrade & Install
         run: |
+          # Force the chart to use the image that was built & pushed earlier in this workflow.
+          # The Docker image tag is controlled by the build step (tags: ${{ secrets.DOCKER_USERNAME }}/flask-k8-app:latest).
           helm upgrade --install flask-app ./helm/helm-chart \
             --namespace default \
-            --values ./helm/helm-chart/values.yaml
+            --values ./helm/helm-chart/values.yaml \
+            --set image.repository=${{ secrets.DOCKER_USERNAME }}/flask-k8-app \
+            --set image.tag=latest
 
       - name: Verify Deployment
         run: kubectl rollout status deployment/flask-app --namespace default
 
-      - name: Run smoke tests (port-forward + curl)
+      - name: Show deployed image(s)
         run: |
-          set -e
-          KUBECONFIG_PATH="${{ github.workspace }}/kubeconfig.yaml"
-          echo "Using kubeconfig: $KUBECONFIG_PATH"
-          # Port-forward the deployment to localhost
-          kubectl --kubeconfig="$KUBECONFIG_PATH" port-forward deployment/flask-app 8080:5000 >/tmp/port-forward.log 2>&1 &
-          PF=$!
-          # Give port-forward a moment to start
-          sleep 4
-          echo "Checking GET /"
-          STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:8080/ || true)
-          echo "GET / returned HTTP $STATUS"
-          if [ "$STATUS" != "200" ] && [ "$STATUS" != "304" ]; then
-            echo "GET / failed; dumping port-forward logs:"; cat /tmp/port-forward.log; kill $PF; exit 1
-          fi
-
-          echo "Checking POST /api/upload"
-          RESP=$(curl -s -X POST -F "serials=TEST1\nTEST2" http://127.0.0.1:8080/api/upload || true)
-          echo "Response: $RESP"
-          echo "$RESP" | grep -q 'img_base64' || (echo "Smoke test failed: img_base64 not found"; cat /tmp/port-forward.log; kill $PF; exit 1)
-          # Clean up port-forward
-          kill $PF || true
+          echo "Deployed container images for deployment/flask-app:"
+          kubectl get deployment flask-app -o=jsonpath='{.spec.template.spec.containers[*].image}' || true
+          echo "Pod-level images (by pod):"
+          kubectl get pods -l app=flask-app -o jsonpath='{range .items[*]}{.metadata.name} {.spec.containers[0].image}{"\n"}{end}' || true

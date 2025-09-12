@@ -96,12 +96,26 @@ def upload_and_export():
     # Generate QR preview
     img_base64 = encode_text_to_qr(payload, scale=qr_size)
 
+    # Ensure we return a ready-to-use data URI for clients and keep the raw base64
+    if isinstance(img_base64, str) and img_base64.startswith('data:'):
+        img_src = img_base64
+        # strip data: prefix to keep img_base64 as raw base64 for backwards compatibility
+        try:
+            _, b64 = img_base64.split(',', 1)
+            img_b64_raw = b64
+        except Exception:
+            img_b64_raw = img_base64
+    else:
+        img_b64_raw = img_base64 or ''
+        img_src = f"data:image/png;base64,{img_b64_raw}"
+
     # Generate PDF and store in memory
     pdf_bytes = generate_qr_pdf(payload, scale=qr_size)
     pdf_b64 = base64.b64encode(pdf_bytes).decode('utf-8')
 
     return jsonify({
-        'img_base64': img_base64,
+        'img_base64': img_b64_raw,
+        'img_src': img_src,
         'pdf_b64': pdf_b64,
     })
 
@@ -183,7 +197,19 @@ def debug_routes():
         from flask import current_app
         rules = []
         for rule in sorted(current_app.url_map.iter_rules(), key=lambda r: r.rule):
-            rules.append({'rule': rule.rule, 'endpoint': rule.endpoint, 'methods': sorted(list(rule.methods))})
+            # rule.methods can be a set or None; normalize to a sorted list for JSON
+            methods = sorted(list(rule.methods or []))
+            rules.append({'rule': rule.rule, 'endpoint': rule.endpoint, 'methods': methods})
         return jsonify({'routes': rules})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+
+@bp.route('/healthz')
+def healthz():
+    """Simple health endpoint for Kubernetes readiness/liveness.
+
+    Kept intentionally tiny: returns 200 OK when the app process is alive.
+    Use a separate readiness/liveness path so probes are fast and predictable.
+    """
+    return ('', 200)

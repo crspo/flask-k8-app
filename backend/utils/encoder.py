@@ -65,7 +65,9 @@ def encode_text_to_qr(text: str, scale: int = 50) -> str:
 
     buf = BytesIO()
     img.save(buf, format='PNG')
-    return base64.b64encode(buf.getvalue()).decode('utf-8')
+    b64 = base64.b64encode(buf.getvalue()).decode('utf-8')
+    # Return a ready-to-use data URI to simplify client usage
+    return f"data:image/png;base64,{b64}"
 
 
 def generate_qr_pdf(text: str, scale: int = 50) -> bytes:

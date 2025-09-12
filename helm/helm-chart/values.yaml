@@ -37,7 +37,7 @@ networkPolicy:
 
 readinessProbe:
   httpGet:
-    path: /
+    path: /healthz
     port: 5000
   initialDelaySeconds: 5
   periodSeconds: 10
@@ -45,7 +45,7 @@ readinessProbe:
 
 livenessProbe:
   httpGet:
-    path: /
+    path: /healthz
     port: 5000
   initialDelaySeconds: 15
   periodSeconds: 20
