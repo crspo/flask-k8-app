@@ -16,6 +16,11 @@ spec:
       - name: qr-code-app
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
         imagePullPolicy: {{ .Values.image.pullPolicy | default "IfNotPresent" }}
+        # Ensure the process runs from /app and Python can import the top-level wsgi module
+        workingDir: /app
+        env:
+        - name: PYTHONPATH
+          value: /app
         # Explicitly set the container command to run gunicorn. Some images or
         # deployments may inherit or override the image CMD and start the
         # Flask dev server (python app.py). Setting the command here forces
