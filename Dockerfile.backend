@@ -27,8 +27,14 @@ RUN apt-get update \
 COPY requirements.txt .
 # Build a wheelhouse in the builder stage so the runtime image can install
 # binary wheels without needing to compile source packages or copy a full venv.
-RUN python -m pip install --upgrade pip setuptools wheel \
-    && python -m pip wheel --wheel-dir /wheels -r requirements.txt
+# If the builder base image already ships a `/wheels` directory (prebuilt
+# builder image), skip wheel creation to save time in CI.
+RUN if [ -d /wheels ] && [ "$(ls -A /wheels)" ]; then \
+            echo "Using prebuilt wheels in /wheels (skipping wheel build)"; \
+        else \
+            python -m pip install --upgrade pip setuptools wheel && \
+            python -m pip wheel --wheel-dir /wheels -r requirements.txt; \
+        fi
 
 # --- Runtime: backend only (uses prebuilt frontend static files provided by CI) ---
 FROM python:3.13-slim

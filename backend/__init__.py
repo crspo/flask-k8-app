@@ -8,7 +8,9 @@ project root. It delegates routing to the existing `routes` module.
 from flask import Flask
 
 def create_app(**config_overrides):
-    app = Flask(__name__)
+    # Disable Flask's automatic static file handling to avoid colliding with
+    # the custom `/static/<path:filename>` routes defined in the blueprint.
+    app = Flask(__name__, static_folder=None)
 
     # Allow callers to override config programmatically
     for k, v in config_overrides.items():

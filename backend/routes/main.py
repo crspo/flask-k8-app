@@ -1,4 +1,4 @@
-from flask import Blueprint, request, Response, jsonify, send_file, send_from_directory
+from flask import Blueprint, request, Response, jsonify, send_file, send_from_directory, current_app
 import base64
 import os
 from pathlib import Path
@@ -86,7 +86,12 @@ def upload_and_export():
     # end input logic
 
     # Lazily import encoder functions to avoid importing heavy native dependencies at module import time
-    from backend.utils.encoder import encode_text_to_qr, generate_qr_pdf
+    try:
+        from backend.utils.encoder import encode_text_to_qr, generate_qr_pdf
+    except Exception as e:
+        # Import failed; log full exception and return a clear error to the caller
+        current_app.logger.exception('Failed to import encoder module')
+        return jsonify({'error': f'Encoder module import error: {e}'}), 500
 
     # Generate QR preview
     img_base64 = encode_text_to_qr(payload, scale=qr_size)
@@ -167,7 +172,7 @@ def client_error():
     stack = data.get('stack') or ''
     ua = data.get('userAgent') or request.headers.get('User-Agent')
     # Log the error for developers to inspect (visible in pod logs)
-    bp.logger.error('Client error: %s\nUser-Agent: %s\nStack:\n%s', message, ua, stack)
+    current_app.logger.error('Client error: %s\nUser-Agent: %s\nStack:\n%s', message, ua, stack)
     return ('', 204)
 
 
