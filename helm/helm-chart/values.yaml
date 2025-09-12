@@ -4,7 +4,7 @@ app:
 
 image:
   repository: chandansyd05/flask-k8-app
-  tag: 1000
+  tag: "390a36b"
   pullPolicy: Always
   # Optionally specify imagePullSecrets when pulling from private registries
   pullSecrets: []
