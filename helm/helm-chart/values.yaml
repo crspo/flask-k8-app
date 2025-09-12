@@ -4,8 +4,8 @@ app:
 
 image:
   repository: chandansyd05/flask-k8-app
-  tag: latest
-  pullPolicy: IfNotPresent
+  tag: 1000
+  pullPolicy: Always
   # Optionally specify imagePullSecrets when pulling from private registries
   pullSecrets: []
 

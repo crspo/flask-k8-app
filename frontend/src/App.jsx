@@ -46,8 +46,11 @@ export default function App(){
     <div className="app">
       <header className="site-header">
         <div className="brand">
-          <img src="/text-to-dm-logo.png" alt="logo" className="logo" />
-          <h1>Text→DataMatrix</h1>
+          <img src="/static/text-to-dm-logo.png" alt="logo" className="logo" />
+          <div className="hero">
+            <h1>Text→DataMatrix</h1>
+            <p className="tagline">Convert serial lists into printable DataMatrix symbols</p>
+          </div>
         </div>
         <nav className="tabs">
           <button className={tab==='convert'? 'active':''} onClick={() => setTab('convert')}>Convert</button>
@@ -79,6 +82,11 @@ export default function App(){
                       <label><input type="radio" name="size" value="small" checked={size==='small'} onChange={() => setSize('small')} /> Small</label>
                       <label><input type="radio" name="size" value="medium" checked={size==='medium'} onChange={() => setSize('medium')} /> Medium</label>
                       <label><input type="radio" name="size" value="large" checked={size==='large'} onChange={() => setSize('large')} /> Large</label>
+                    </div>
+                    <div className="size-hint muted small">
+                      <div>Small — approx. 18 mm</div>
+                      <div>Medium — approx. 34 mm (printed)</div>
+                      <div>Large — approx. 60 mm</div>
                     </div>
                   </div>
 

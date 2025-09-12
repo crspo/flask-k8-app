@@ -60,14 +60,23 @@ def upload_and_export():
     """
     Handles file upload, generates QR preview, and returns JSON with base64 image and PDF.
     """
-    size_map = {
-        'small': 25,
-        'medium': 50,
-        'large': 100
+    # Map UI sizes to explicit DataMatrix module sizes (pixels per module).
+    # Adjust these values so the rendered symbol matches the expected visual size.
+    module_size_map = {
+        'small': 6,
+        # keep legacy explicit module_size for small/large; for medium we prefer a
+        # target physical size (printed) which will be computed by the encoder.
+        'medium': 8,
+        'large': 12,
     }
 
     selected_size = request.form.get('size', 'medium')
-    qr_size = size_map.get(selected_size, 50)  # default to Medium if not recognized
+    # For "medium" use a target physical size (in mm) so printed output is predictable.
+    target_mm = None
+    if selected_size == 'medium':
+        target_mm = 34.0
+
+    module_size = module_size_map.get(selected_size, 8)  # default to medium module size
 
     file = request.files.get('file')
     serials_input = request.form.get('serials', '').strip()
@@ -93,8 +102,9 @@ def upload_and_export():
         current_app.logger.exception('Failed to import encoder module')
         return jsonify({'error': f'Encoder module import error: {e}'}), 500
 
-    # Generate QR preview
-    img_base64 = encode_text_to_qr(payload, scale=qr_size)
+    # Generate QR preview using explicit module size
+    # Prefer target_mm when provided; encoder will compute an appropriate module_size.
+    img_base64 = encode_text_to_qr(payload, module_size=module_size, target_mm=target_mm, dpi=300)
 
     # Ensure we return a ready-to-use data URI for clients and keep the raw base64
     if isinstance(img_base64, str) and img_base64.startswith('data:'):
@@ -110,7 +120,7 @@ def upload_and_export():
         img_src = f"data:image/png;base64,{img_b64_raw}"
 
     # Generate PDF and store in memory
-    pdf_bytes = generate_qr_pdf(payload, scale=qr_size)
+    pdf_bytes = generate_qr_pdf(payload, module_size=module_size, target_mm=target_mm, dpi=300)
     pdf_b64 = base64.b64encode(pdf_bytes).decode('utf-8')
 
     return jsonify({

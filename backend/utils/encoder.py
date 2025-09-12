@@ -40,13 +40,33 @@ def _render_datamatrix(text: str, module_size: int = 8, border_modules: int = 2)
     return img
 
 
-def encode_text_to_qr(text: str, scale: int = 50) -> str:
-    """Return a base64-encoded PNG of the datamatrix (no data: prefix).
+def _compute_module_size_for_target(text: str, target_mm: float, dpi: int = 300, border_modules: int = 2) -> int:
+    """Compute pixels-per-module so the printed symbol width approximates target_mm at dpi."""
+    if DataMatrix is None:
+        raise RuntimeError('ppf.datamatrix not available')
+    dm = DataMatrix(text)
+    mat = dm.matrix
+    cols = len(mat[0])
+    total_modules = cols + border_modules * 2
+    target_pixels = round((target_mm / 25.4) * dpi)
+    module_size = max(1, target_pixels // total_modules)
+    return module_size
 
-    scale parameter maps roughly to pixels per module. Typical values used by
-    the web UI are 25/50/100; we convert that into module pixel size.
+
+def encode_text_to_qr(text: str, scale: int = 50, module_size: int | None = None, target_mm: float | None = None, dpi: int = 300) -> str:
+    """Return a data-URI PNG of the datamatrix.
+
+    Either provide `module_size` (pixels per datamatrix module) directly, or
+    pass a `scale` value which will be converted into a module size
+    (legacy behavior). Passing `module_size` gives explicit control over
+    output symbol size.
     """
-    module_size = max(2, scale // 5)
+    if target_mm is not None:
+        # compute module_size so printed width ~ target_mm
+        module_size = _compute_module_size_for_target(text or '<empty>', target_mm=target_mm, dpi=dpi)
+
+    if module_size is None:
+        module_size = max(2, scale // 5)
 
     try:
         img = _render_datamatrix(text or '<empty>', module_size=module_size)
@@ -70,9 +90,16 @@ def encode_text_to_qr(text: str, scale: int = 50) -> str:
     return f"data:image/png;base64,{b64}"
 
 
-def generate_qr_pdf(text: str, scale: int = 50) -> bytes:
-    """Generate a one-page PDF embedding the DataMatrix image and return bytes."""
-    module_size = max(2, scale // 5)
+def generate_qr_pdf(text: str, scale: int = 50, module_size: int | None = None, target_mm: float | None = None, dpi: int = 300) -> bytes:
+    """Generate a one-page PDF embedding the DataMatrix image and return bytes.
+
+    Accepts the same `module_size` vs `scale` options as `encode_text_to_qr`.
+    """
+    if target_mm is not None:
+        module_size = _compute_module_size_for_target(text or '<empty>', target_mm=target_mm, dpi=dpi)
+
+    if module_size is None:
+        module_size = max(2, scale // 5)
 
     try:
         img = _render_datamatrix(text or '<empty>', module_size=module_size)
@@ -96,12 +123,19 @@ def generate_qr_pdf(text: str, scale: int = 50) -> bytes:
     c = canvas.Canvas(out, pagesize=A4)
     width, height = A4
 
-    img_width = min(width - 100, img.width)
-    img_height = min(height - 100, img.height)
-    x = (width - img_width) / 2
-    y = (height - img_height) / 2
-
-    c.drawImage(ImageReader(img_buf), x, y, width=img_width, height=img_height)
+    if target_mm is not None:
+        # convert target mm to PDF points (1 pt = 1/72 in)
+        img_width_pts = (target_mm / 25.4) * 72
+        img_height_pts = img_width_pts
+        x = (width - img_width_pts) / 2
+        y = (height - img_height_pts) / 2
+        c.drawImage(ImageReader(img_buf), x, y, width=img_width_pts, height=img_height_pts)
+    else:
+        img_width = min(width - 100, img.width)
+        img_height = min(height - 100, img.height)
+        x = (width - img_width) / 2
+        y = (height - img_height) / 2
+        c.drawImage(ImageReader(img_buf), x, y, width=img_width, height=img_height)
     c.showPage()
     c.save()
     return out.getvalue()
