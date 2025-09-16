@@ -114,6 +114,14 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
+      - name: Compute image tags
+        id: vars
+        shell: bash
+        run: |
+          SHORT_SHA=$(echo "${GITHUB_SHA}" | cut -c1-7)
+          echo "SHORT_SHA=${SHORT_SHA}" >> $GITHUB_OUTPUT
+          echo "TAGS=${{ secrets.DOCKER_USERNAME }}/flask-k8-app:${SHORT_SHA},${{ secrets.DOCKER_USERNAME }}/flask-k8-app:latest" >> $GITHUB_OUTPUT
+
       - name: Build and push backend image
         uses: docker/build-push-action@v4
         with:
@@ -121,7 +129,7 @@ jobs:
           file: Dockerfile.backend
           push: true
           platforms: linux/amd64
-          tags: ${{ secrets.DOCKER_USERNAME }}/flask-k8-app:latest
+          tags: ${{ steps.vars.outputs.TAGS }}
           build-args: |
             BUILDER_BASE=ghcr.io/${{ github.repository_owner }}/flask-k8-app-builder:latest
           cache-from: |
@@ -169,12 +177,12 @@ jobs:
       - name: Helm Upgrade & Install
         run: |
           # Force the chart to use the image that was built & pushed earlier in this workflow.
-          # The Docker image tag is controlled by the build step (tags: ${{ secrets.DOCKER_USERNAME }}/flask-k8-app:latest).
+          # The Docker image tag is controlled by the build step (tags include the commit short SHA).
           helm upgrade --install flask-app ./helm/helm-chart \
             --namespace default \
             --values ./helm/helm-chart/values.yaml \
             --set image.repository=${{ secrets.DOCKER_USERNAME }}/flask-k8-app \
-            --set image.tag=latest
+            --set image.tag=${{ steps.vars.outputs.SHORT_SHA }}
 
       - name: Verify Deployment
         run: kubectl rollout status deployment/flask-app --namespace default
