@@ -56,11 +56,12 @@ jobs:
           name: frontend-static
           path: ./static
 
-  build-and-deploy:
-    name: Build & Deploy Backend
-    runs-on: [self-hosted]
+  build-image:
+    name: Build & Push Backend Image
+    runs-on: ubuntu-latest
     needs: build-frontend
-
+    outputs:
+      short_sha: ${{ steps.vars.outputs.SHORT_SHA }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -77,9 +78,7 @@ jobs:
           if [ -d ./frontend-static/static ]; then
             mv ./frontend-static/static ./static
           elif [ -d ./frontend-static ]; then
-            # Move all files from artifact root into repo root
             mv ./frontend-static/* . || true
-            # If static exists inside moved files, normalize location
             if [ -d ./static ]; then
               echo "static directory ready"
             fi
@@ -98,7 +97,6 @@ jobs:
           if [ -d ./static ]; then
             echo "Creating backend/static and moving built frontend files into it"
             mkdir -p backend/static
-            # Move all files from artifact static into backend/static
             cp -a ./static/. backend/static/ || true
             echo "backend/static now contains:"; ls -la backend/static || true
           else
@@ -128,7 +126,6 @@ jobs:
           context: .
           file: Dockerfile.backend
           push: true
-          platforms: linux/amd64
           tags: ${{ steps.vars.outputs.TAGS }}
           build-args: |
             BUILDER_BASE=ghcr.io/${{ github.repository_owner }}/flask-k8-app-builder:latest
@@ -136,6 +133,14 @@ jobs:
             type=gha
             type=registry,ref=ghcr.io/${{ github.repository_owner }}/flask-k8-app-builder:latest
           cache-to: type=gha,mode=max
+
+  deploy:
+    name: Deploy to Cluster
+    runs-on: [self-hosted]
+    needs: build-image
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
 
       - name: Install Helm
         uses: azure/setup-helm@v3
@@ -177,12 +182,12 @@ jobs:
       - name: Helm Upgrade & Install
         run: |
           # Force the chart to use the image that was built & pushed earlier in this workflow.
-          # The Docker image tag is controlled by the build step (tags include the commit short SHA).
+          # The Docker image tag is the commit short SHA output by the build-image job.
           helm upgrade --install flask-app ./helm/helm-chart \
             --namespace default \
             --values ./helm/helm-chart/values.yaml \
             --set image.repository=${{ secrets.DOCKER_USERNAME }}/flask-k8-app \
-            --set image.tag=${{ steps.vars.outputs.SHORT_SHA }}
+            --set image.tag=${{ needs.build-image.outputs.short_sha }}
 
       - name: Verify Deployment
         run: kubectl rollout status deployment/flask-app --namespace default
