@@ -125,7 +125,7 @@ jobs:
           echo "TAGS=${{ secrets.DOCKER_USERNAME }}/flask-k8-app:${SHORT_SHA},${{ secrets.DOCKER_USERNAME }}/flask-k8-app:latest" >> $GITHUB_OUTPUT
 
       - name: Build and push backend image (stable push)
-        uses: docker/build-push-action@v4
+        uses: docker/build-push-action@v6
         with:
           context: .
           file: Dockerfile.backend
@@ -134,10 +134,6 @@ jobs:
           tags: ${{ steps.vars.outputs.TAGS }}
           build-args: |
             BUILDER_BASE=ghcr.io/${{ github.repository_owner }}/flask-k8-app-builder:latest
-          cache-from: |
-            type=gha
-            type=registry,ref=ghcr.io/${{ github.repository_owner }}/flask-k8-app-builder:latest
-          cache-to: type=gha,mode=max
           provenance: false
           sbom: false
 
