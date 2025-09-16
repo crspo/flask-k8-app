@@ -41,10 +41,6 @@ FROM node:18-bullseye AS node-builder
 WORKDIR /src/frontend
 COPY frontend/package.json frontend/package-lock.json* ./
 COPY frontend/ ./
-# Ensure the server-side `templates/` directory is available in the node build
-# stage so `scripts/copy-index.js` can write the built `index.html` into
-# `/src/templates/index.html` inside the container.
-COPY templates/ /src/templates/
 # Prefer reproducible install; fall back to npm install if npm ci fails
 RUN if [ -f package-lock.json ]; then npm ci --legacy-peer-deps; else npm install; fi
 RUN npm run build
