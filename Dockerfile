@@ -79,9 +79,8 @@ ENV PATH="/venv/bin:$PATH"
 COPY backend /app/backend
 COPY wsgi.py /app/wsgi.py
 
-COPY --from=node-builder /src/static ./backend/static
+COPY --from=node-builder /src/backend/static ./backend/static
 COPY frontend/public ./backend/static/public
-COPY --from=node-builder /src/templates ./backend/templates
 
 # Clean up __pycache__
 RUN rm -rf /venv/lib/python*/site-packages/__pycache__ \
