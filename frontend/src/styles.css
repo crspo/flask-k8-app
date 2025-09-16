@@ -33,6 +33,77 @@ body { font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neu
 .card{background:var(--card);padding:1rem;border-radius:12px;box-shadow:0 6px 18px rgba(2,6,23,0.06);margin-bottom:1rem;border:1px solid rgba(15,23,42,0.04)}
 .card h2{margin-top:0}
 
+/* Print form styles */
+.print-form .print-actions{display:flex;justify-content:center;margin-bottom:0.5rem}
+.print-form .form-grid{display:grid;grid-template-columns: 1fr 300px;gap:1rem;align-items:start;margin:0}
+.print-form .form-col{display:flex;flex-direction:column;gap:0.5rem;min-width:0}
+.print-form input,.print-form textarea{padding:0.5rem;border:1px solid #d1e8f6;background:white}
+.print-form .form-row textarea{min-height:64px;height:64px}
+.print-form .badge{background:#0bb63b;color:white;padding:8px 12px;border-radius:4px;font-weight:700;display:inline-block;margin-bottom:8px}
+.actions .badge{background:#0bb63b;color:white;padding:8px 14px;border-radius:8px;font-weight:800;display:inline-block}
+.print-form .summary-row{display:flex;gap:1rem;align-items:center;margin:0.5rem 0}
+.print-form .summary-row .big{font-size:1.2rem;color:#666}
+.print-form .summary-row .big span{display:block;font-size:2rem;font-weight:700;color:#333}
+.print-form .dt{color:#333;font-weight:600}
+.print-form .print-preview{position:relative;display:block;gap:1rem;margin-top:1rem;padding:0.75rem;border:1px dashed #e5eef6}
+.print-form .print-preview .preview-count{position:absolute;top:6px;right:8px;color:#555;font-size:0.9rem}
+.print-form .print-preview .left{width:220px;float:left;margin-right:12px}
+.print-form .print-preview img{width:180px;height:auto;display:block}
+.print-form .print-preview .dm-label{font-size:0.85rem;color:#444;margin-top:6px}
+.print-form .print-preview .right{flex:1}
+
+/* Print-specific rules */
+@media print{
+	body{background:white}
+	.site-header,.tabs,.site-footer,.actions button{display:none}
+	/* Hide form title and tighten spacing for landscape printing */
+	.print-form h2{display:none}
+	/* Hide the DM content input row in printed output */
+	.dm-content-row{display:none !important}
+	/* Use full page width on print */
+	.container{max-width:none;width:100%;margin:0;padding:0 10mm}
+	/* Two-column layout: wider form area + fixed preview width */
+	.print-form .form-grid{display:grid;grid-template-columns: 1fr 260px;gap:12px;align-items:start}
+	.print-form .print-preview{width:auto}
+	.print-preview .left img{width:140px}
+	.print-form .print-preview{border:0}
+	.actions .dropdown-menu{display:none}
+}
+
+/* Force landscape single-page printing for label output */
+@page {
+	size: landscape; /* request landscape */
+	margin: 10mm;     /* small margins for label space */
+}
+
+@media print {
+	/* Ensure the print-preview occupies a single page and is not split */
+	.print-preview { page-break-inside: avoid; page-break-after: avoid; }
+	.print-preview .left img { display:block; max-width:100%; height:auto }
+	/* Serial labels above and below DM */
+	.serial-first, .serial-last { text-align:center; font-weight:700; font-size:14px; margin:6px 0; color:#000 !important; line-height:1.2; }
+	.serial-first { margin-bottom:4px }
+	.serial-last { margin-top:4px }
+}
+
+/* form row: label on left, control on right */
+.form-row{display:grid;grid-template-columns:220px 1fr;align-items:center;column-gap:12px}
+.form-row label{text-align:left;padding-right:12px;font-weight:600;font-size:0.95rem;line-height:1.1;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;white-space:normal;line-clamp:2;width:auto}
+.form-row input,.form-row textarea{width:100%}
+.form-row.small label{width:120px;font-size:0.9rem}
+
+
+.preview-header{display:flex;align-items:center;gap:12px;margin-bottom:6px}
+.right-meta{display:none}
+
+.preview-body{display:flex;gap:20px;margin-top:6px}
+.preview-body .left{width:200px}
+.preview-body .right{flex:1}
+ .preview-body .right h3{margin:0;font-size:1.25rem}
+ .preview-body .right p{margin:6px 0;color:#222}
+
+/* preview notes removed */
+
 .u-form label{display:block;margin-bottom:0.25rem;font-weight:700;color:#0f172a}
 .u-form textarea{width:100%;min-height:140px;padding:0.75rem;border-radius:8px;border:1px solid #e6eef6;background:linear-gradient(180deg,#fff,#fbfeff)}
 .u-form input[type=file]{display:block;margin-top:0.5rem}
@@ -44,6 +115,13 @@ body { font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neu
 .actions{margin-top:1rem}
 .actions button{background:linear-gradient(90deg,var(--accent),var(--accent-700));color:white;border:0;padding:0.6rem 1rem;border-radius:10px;cursor:pointer;box-shadow:0 6px 12px rgba(14,165,233,0.18)}
 .actions button[disabled]{opacity:0.6;cursor:default}
+.actions .dropdown{position:relative;display:inline-block}
+.actions .dropdown-toggle{user-select:none;position:relative;padding-right:28px}
+.actions .dropdown-toggle::after{content:"\25BC"; /* down triangle */ position:absolute; right:10px; top:50%; transform:translateY(-50%); font-size:0.8rem; opacity:0.9}
+.actions .dropdown.open .dropdown-toggle::after{content:"\25B2"; /* up triangle */}
+.actions .dropdown-menu{position:absolute;top:110%;left:0;background:#fff;border:1px solid #d1e8f6;border-radius:8px;box-shadow:0 8px 24px rgba(2,6,23,0.12);padding:4px 0;min-width:200px;z-index:20}
+.actions .dropdown-menu li{list-style:none;padding:8px 12px;cursor:pointer}
+.actions .dropdown-menu li:hover{background:#f1f5f9}
 
 .preview img{max-width:360px;border-radius:6px;border:1px solid #e6eef6;padding:6px;background:white;display:block}
 .preview h3{margin-top:0}
